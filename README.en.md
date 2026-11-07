@@ -41,30 +41,30 @@ New-Item -ItemType File "$HOME\.claude\.korean-adhd-always"
 
 If you were using i-have-adhd, turn it off in your terminal with `claude plugin disable i-have-adhd@i-have-adhd`. With both on, Claude still follows this plugin's rules, but similar rules get injected twice.
 
-## Company tone option
+## Tone setting
 
-Shortens replies to Korean business-report style. It applies to chat replies and work reports and is off by default. The rules are in [`references/company-tone.md`](skills/korean-adhd/references/company-tone.md).
+Replies use one of two tones: company tone (default) or plain style. Company tone shortens chat replies and work reports to Korean business-report style. Plain style writes ordinary polite sentences. The company tone rules are in [`references/company-tone.md`](skills/korean-adhd/references/company-tone.md).
 
-There are two ways to turn it on.
+There are two ways to change it.
 
-1. For the current session only, turn the rules on with `/korean-adhd:korean-adhd`, then say "회사어투 켜" (company tone on). Say "회사어투 꺼" (company tone off) to turn it off.
-2. For every new session, create a flag file. It only works together with the `.korean-adhd-always` file.
+1. For the current session only, say "일반어투로" (plain style) or "회사어투로" (company tone).
+2. For every new session, write `plain` or `company` to the setting file `~/.claude/.korean-adhd-tone`. Without the file, company tone is used. It only works together with the `.korean-adhd-always` file.
 
    ```bash
    # macOS, Linux, Git Bash
-   touch ~/.claude/.korean-adhd-company
+   echo plain > ~/.claude/.korean-adhd-tone
    ```
 
    ```powershell
    # PowerShell
-   New-Item -ItemType File "$HOME\.claude\.korean-adhd-company"
+   Set-Content "$HOME\.claude\.korean-adhd-tone" plain
    ```
 
 ### How sentences change
 
 Actual replies are in Korean. This table shows the same change in English.
 
-| Default | Company tone |
+| Plain style | Company tone |
 | --- | --- |
 | I checked the DB and fixed it. | DB checked, fix complete |
 | The cause is the cache. | Cause: cache |
@@ -77,7 +77,7 @@ Actual replies are in Korean. This table shows the same change in English.
 
 Written by hand to illustrate the rules. Shown in English. Actual replies are in Korean.
 
-Default:
+Plain style:
 
 > I checked the login error. The cause looks like the cache, but that is not certain yet. Three tests failed and we plan to deploy tomorrow.
 
@@ -95,7 +95,7 @@ Company tone:
 
 ## Examples
 
-These examples are written by hand to illustrate the rules and are shown in English for readability. Actual replies are in Korean and vary with the model and conversation.
+These examples are written by hand to illustrate the rules and are shown in English for readability. They use plain style, with company tone off. Actual replies are in Korean and vary with the model and conversation.
 
 ### Example 1. Fixing an error
 
@@ -163,11 +163,11 @@ The plugin rewrites Korean sentences. These pairs show the same kinds of fix in 
 | Turn off for this session | Say "ADHD 모드 꺼" (ADHD mode off), "normal mode" or "stop adhd mode" |
 | Turn on for every new session | Create `~/.claude/.korean-adhd-always` |
 | Stop turning on for new sessions | Delete that file |
-| Company tone on or off for this session | With the rules on, say "회사어투 켜" (on) or "회사어투 꺼" (off) |
-| Company tone for every new session | Create `~/.claude/.korean-adhd-company` |
-| Stop company tone for new sessions | Delete that file |
+| Change tone for this session | Say "일반어투로" (plain style) or "회사어투로" (company tone) |
+| Set tone for every new session | Write `plain` or `company` to `~/.claude/.korean-adhd-tone` |
+| Back to the default tone (company) | Delete that file |
 
-The company tone file only works together with the `.korean-adhd-always` file. With the always-on file present, the rules are injected again after compaction or `/clear`, even if you turned them off during the session.
+The tone setting file only works together with the `.korean-adhd-always` file. With the always-on file present, the rules are injected again after compaction or `/clear`, even if you turned them off during the session.
 
 ## License
 

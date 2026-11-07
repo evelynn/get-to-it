@@ -54,25 +54,32 @@ const tests = {
     assert.ok(ref, "참조 경로 없음");
     assert.ok(fs.existsSync(ref[1]), ref[1]);
   },
-  "회사어투 플래그가 없으면 옵션 규칙을 주입하지 않는다"() {
-    const dir = fs.mkdtempSync(path.join(tmp, "company-off-"));
-    fs.writeFileSync(path.join(dir, ".korean-adhd-always"), "");
-    const { stdout } = runHook(hook, dir);
-    assert.ok(!stdout.includes(COMPANY_HEAD));
-    assert.doesNotMatch(stdout, /회사어투 옵션 켜짐/);
+  "어투 설정이 없거나 company 면 회사어투 장을 맨 끝에 주입하고 한도 안에 들어간다"() {
+    for (const value of [null, "company\n", "모름"]) {
+      const dir = fs.mkdtempSync(path.join(tmp, "tone-company-"));
+      fs.writeFileSync(path.join(dir, ".korean-adhd-always"), "");
+      if (value !== null) fs.writeFileSync(path.join(dir, ".korean-adhd-tone"), value);
+      const { stdout } = runHook(hook, dir);
+      assert.match(stdout, /회사어투 설정\(기본\)/, String(value));
+      assert.ok(stdout.indexOf(COMPANY_HEAD) > stdout.indexOf("## 보내기 전 점검"), String(value));
+      assert.ok(stdout.length < MAX_INJECTED_CHARS, `${stdout.length}자`);
+    }
   },
-  "회사어투 플래그가 있으면 규칙 맨 끝에 주입하고 한도 안에 들어간다"() {
-    const dir = fs.mkdtempSync(path.join(tmp, "company-on-"));
-    fs.writeFileSync(path.join(dir, ".korean-adhd-always"), "");
-    fs.writeFileSync(path.join(dir, ".korean-adhd-company"), "");
-    const { stdout } = runHook(hook, dir);
-    assert.match(stdout, /회사어투 옵션 켜짐\(상시\)/);
-    assert.ok(stdout.indexOf(COMPANY_HEAD) > stdout.indexOf("## 보내기 전 점검"));
-    assert.ok(stdout.length < MAX_INJECTED_CHARS, `${stdout.length}자`);
+  "어투 설정이 plain 이면 회사어투 장을 주입하지 않는다(PowerShell 5 의 UTF-16·BOM 포함)"() {
+    const utf16 = Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from("plain\r\n", "utf16le")]);
+    for (const value of ["plain\n", "﻿Plain\r\n", utf16]) {
+      const dir = fs.mkdtempSync(path.join(tmp, "tone-plain-"));
+      fs.writeFileSync(path.join(dir, ".korean-adhd-always"), "");
+      fs.writeFileSync(path.join(dir, ".korean-adhd-tone"), value);
+      const { stdout } = runHook(hook, dir);
+      assert.ok(!stdout.includes(COMPANY_HEAD), String(value));
+      assert.match(stdout, /일반어투 설정\(/);
+      assert.match(stdout, /## 보내기 전 점검/);
+    }
   },
-  "회사어투 플래그만 있고 상시 플래그가 없으면 아무것도 주입하지 않는다"() {
-    const dir = fs.mkdtempSync(path.join(tmp, "company-only-"));
-    fs.writeFileSync(path.join(dir, ".korean-adhd-company"), "");
+  "어투 설정 파일만 있고 상시 플래그가 없으면 아무것도 주입하지 않는다"() {
+    const dir = fs.mkdtempSync(path.join(tmp, "tone-only-"));
+    fs.writeFileSync(path.join(dir, ".korean-adhd-tone"), "plain");
     const r = runHook(hook, dir);
     assert.equal(r.status, 0);
     assert.equal(r.stdout, "");
@@ -87,7 +94,8 @@ const tests = {
     assert.match(rule, /"사유:"에는 확인된 원인만 기재/);
     assert.match(rule, /점검만 한 일을 결함 발견처럼 표기 금지/);
     assert.match(rule, /기술 용어, 수치, 검증 결과는 원문 의미 유지/);
-    assert.match(rule, /3장 일반어체 절 대신 이 장 적용/);
+    assert.match(rule, /기본 어체이며 3장 일반어투 절 대신 적용/);
+    assert.match(rule, /일반어투 설정 또는 세션 중 일반어투 전환 시 미적용/);
     assert.match(rule, /1·2·4·5장과 보내기 전 점검은 그대로 적용/);
     assert.match(rule, /사용자의 반말·존댓말과 무관하게 보고체 유지/);
     assert.match(rule, /커밋 메시지, 코드 주석은 저장소 관례 유지/);
@@ -101,8 +109,8 @@ const tests = {
     const dir = fs.mkdtempSync(path.join(tmp, "company-ref-"));
     fs.writeFileSync(path.join(dir, ".korean-adhd-always"), "");
     const { stdout } = runHook(hook, dir);
-    assert.match(stdout, /"회사어투 켜"/);
-    assert.match(stdout, /"회사어투 꺼"/);
+    for (const say of ['"회사어투 켜"', '"회사어투 꺼"', '"일반어투로"', '"회사어투로"']) assert.ok(stdout.includes(say), say);
+    assert.match(stdout, /회사어투\(기본\)와 일반어투 중 하나/);
     const ref = stdout.match(/`([^`]*references\/company-tone\.md)`/);
     assert.ok(ref, "참조 경로 없음");
     assert.ok(fs.existsSync(ref[1]), ref[1]);
@@ -152,7 +160,7 @@ const tests = {
     assert.match(rule, /"만·최대·약" 같은 한정어/);
     assert.match(rule, /영어를 한국어로 옮기거나 번역을 원문과 대조/);
   },
-  "어체별 규칙이 공통·일반어체·회사어투로 나뉜다"() {
+  "어체별 규칙이 공통·일반어투·회사어투로 나뉜다"() {
     const rule = fs.readFileSync(skillPath, "utf8");
     const at = (s) => {
       const i = rule.indexOf(s);
@@ -161,19 +169,20 @@ const tests = {
     };
     const ch2 = at("## 2장. 한국어 문장");
     const ch3 = at("## 3장. 어체");
-    const plain = at("### 일반어체");
     const company = at("### 회사어투");
+    const plain = at("### 일반어투");
     const ch4 = at("## 4장.");
-    assert.ok(ch2 < ch3 && ch3 < plain && plain < company && company < ch4);
-    assert.match(rule, /\| 대상 \| 일반어체\(기본\) \| 회사어투 켜짐 \|/);
+    assert.ok(ch2 < ch3 && ch3 < company && company < plain && plain < ch4);
+    assert.match(rule, /\| 대상 \| 회사어투\(기본\) \| 일반어투 \|/);
+    assert.match(rule, /\| 채팅 답변 \| 회사체 \| 일반어투 \|/);
     assert.match(rule, /\| 커밋 메시지, 코드 주석 \| 저장소 관례 \| 저장소 관례 \|/);
     // 회사어투는 사용자 말투를 따라가지 않는다
     const toneFree = at("사용자가 반말을 쓰든 존댓말을 쓰든 어미는 보고체로");
-    assert.ok(company < toneFree && toneFree < ch4);
-    // 일반어체 전용 규칙은 일반어체 절에만, 사실·연결 보존은 공통(2장)에만 있다
+    assert.ok(company < toneFree && toneFree < plain);
+    // 일반어투 전용 규칙은 일반어투 절에만, 사실·연결 보존은 공통(2장)에만 있다
     for (const s of ["조사를 빼서 줄이지 않는다", "전보문처럼 조사를 깎아", "단서가 없으면 \"~합니다\"를 쓴다"]) {
       const i = at(s);
-      assert.ok(plain < i && i < company, s);
+      assert.ok(plain < i && i < ch4, s);
       assert.equal(rule.indexOf(s, i + 1), -1, s);
     }
     for (const s of ["원인·대비·순서를 잇는 말은 줄일 때도 남긴다", "\"만·최대·약\" 같은 한정어"]) {
@@ -205,10 +214,16 @@ const tests = {
     assert.match(frontmatter, /\/korean-adhd:korean-adhd/);
     assert.doesNotMatch(frontmatter, /\/korean-adhd(?!:)/);
   },
-  "README 는 소개·설치·회사어투·예시·켜고 끄기·라이선스만 둔다"() {
+  "README 는 소개·설치·어투 설정·예시·켜고 끄기·라이선스만 둔다"() {
     const readme = fs.readFileSync(readmePath, "utf8");
     const heads = [...readme.matchAll(/^## (.+)$/gm)].map((m) => m[1]);
-    assert.deepEqual(heads, ["설치", "회사어투 옵션", "적용 예시", "켜기와 끄기", "라이선스"]);
+    assert.deepEqual(heads, ["설치", "어투 설정", "적용 예시", "켜기와 끄기", "라이선스"]);
+    // 어투는 설정 파일 하나로 고르고 옛 회사어투 플래그는 안내하지 않는다
+    for (const f of [readmePath, defaultReadmePath, path.join(root, "README.en.md")]) {
+      const t = fs.readFileSync(f, "utf8");
+      assert.match(t, /\.korean-adhd-tone/, f);
+      assert.doesNotMatch(t, /\.korean-adhd-(company|plain)/, f);
+    }
     assert.match(readme, /\/plugin marketplace add evelynn\/Korean-Adhd/);
     assert.match(readme, /\/korean-adhd:korean-adhd/);
     assert.match(readme, /github\.com\/ayghri\/i-have-adhd/);
@@ -225,7 +240,7 @@ const tests = {
     const heads = (t) => [...t.matchAll(/^##+ /gm)].length;
     assert.equal(heads(en), heads(ko));
     const commands = (t) =>
-      [...new Set(t.split(/\r?\n/).map((l) => l.trim()).filter((l) => /^(\/plugin|\/korean-adhd|claude plugin|node tests|touch|rm -f|New-Item|Remove-Item)/.test(l)))].sort();
+      [...new Set(t.split(/\r?\n/).map((l) => l.trim()).filter((l) => /^(\/plugin|\/korean-adhd|claude plugin|node tests|touch|rm -f|New-Item|Remove-Item|echo|Set-Content)/.test(l)))].sort();
     assert.deepEqual(commands(en), commands(ko));
     for (const anchor of en.matchAll(/\]\(#([^)]+)\)/g)) {
       assert.ok(new RegExp("^##+ " + anchor[1].replaceAll("-", " ") + "$", "im").test(en), anchor[1]);
@@ -248,15 +263,15 @@ const tests = {
     const heads = (t) => [...t.matchAll(/^##+ (.+)$/gm)].map((m) => m[1]);
     assert.deepEqual(heads(plain), heads(main));
     const commands = (t) =>
-      [...new Set(t.split(/\r?\n/).map((l) => l.trim()).filter((l) => /^(\/plugin|\/korean-adhd|claude plugin|node tests|touch|rm -f|New-Item|Remove-Item)/.test(l)))].sort();
+      [...new Set(t.split(/\r?\n/).map((l) => l.trim()).filter((l) => /^(\/plugin|\/korean-adhd|claude plugin|node tests|touch|rm -f|New-Item|Remove-Item|echo|Set-Content)/.test(l)))].sort();
     assert.deepEqual(commands(plain), commands(main));
   },
   "회사어투 README 는 예시까지 금지 어미를 쓰지 않는다"() {
-    // 비교 기준인 "이전:"·"기본:" 인용과 표의 왼쪽 칸만 제외
+    // 비교 기준인 "이전:"·"일반어투:" 인용과 표의 왼쪽 칸만 제외
     const body = fs
       .readFileSync(readmePath, "utf8")
       .replace(/```[\s\S]*?```/g, "")
-      .replace(/(이전|기본):(\r?\n)+(>.*(\r?\n))+/g, "");
+      .replace(/(이전|일반어투):(\r?\n)+(>.*(\r?\n))+/g, "");
     const hits = body
       .split(/\r?\n/)
       .map((l) => (l.startsWith("|") ? l.split("|").at(-2) ?? "" : l))
@@ -271,6 +286,8 @@ const tests = {
       .replaceAll("`다음:`", "")
       .replaceAll('"회사어투 켜"', "")
       .replaceAll('"회사어투 꺼"', "")
+      .replaceAll('"일반어투로"', "")
+      .replaceAll('"회사어투로"', "")
       .replaceAll('"ADHD 모드 꺼"', "");
     const hits = rest.split(/\r?\n/).filter((l) => /[가-힣]/.test(l));
     assert.deepEqual(hits, []);

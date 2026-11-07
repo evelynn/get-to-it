@@ -24,13 +24,20 @@ try {
     .replace(/(?:\r?\n)+$/, "")
     .replaceAll("${CLAUDE_SKILL_DIR}", path.resolve(skillDir).replaceAll("\\", "/"));
 
-  // 회사어투 옵션은 상시 모드 위에 얹는다. 플래그가 있어야만 주입한다.
-  const companyFlag = path.join(claudeDir, ".korean-adhd-company");
+  // 어투 설정 파일 값이 plain 이면 일반어투, 그 밖(파일 없음 포함)은 회사어투다.
+  // PowerShell 5 가 UTF-16·BOM 으로 써도 읽히도록 영문자만 남겨 비교한다.
+  const toneFile = path.join(claudeDir, ".korean-adhd-tone");
+  let plainOn = false;
+  try {
+    plainOn = fs.readFileSync(toneFile, "utf8").replace(/[^a-z]/gi, "").toLowerCase() === "plain";
+  } catch {}
   const companyPath = path.join(skillDir, "references", "company-tone.md");
-  const companyOn = fs.existsSync(companyFlag) && fs.existsSync(companyPath);
-  const companyNote = companyOn
-    ? `회사어투 옵션 켜짐(상시). 맨 끝의 회사어투 옵션 장을 따른다. 없애려면 ${companyFlag} 를 지운다.\n`
-    : "";
+  const companyOn = !plainOn && fs.existsSync(companyPath);
+  const companyNote = plainOn
+    ? `일반어투 설정(${toneFile} = plain). 회사어투 옵션 장을 넣지 않았다. 회사어투로 바꾸려면 값을 company 로 바꾸거나 파일을 지운다.\n`
+    : companyOn
+      ? `회사어투 설정(기본). 맨 끝의 회사어투 옵션 장을 따른다. 일반어투로 바꾸려면 ${toneFile} 에 plain 을 쓴다. 이번 세션만 바꾸려면 "회사어투 꺼".\n`
+      : "";
   const company = companyOn
     ? `\n\n${fs.readFileSync(companyPath, "utf8").replace(/(?:\r?\n)+$/, "")}`
     : "";

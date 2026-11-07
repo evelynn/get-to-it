@@ -43,32 +43,32 @@ i-have-adhd 사용 중이면 터미널에서 `claude plugin disable i-have-adhd@
 
 사유: 함께 켜도 Claude는 이 플러그인 규칙을 따르지만 비슷한 규칙이 두 번 주입됨.
 
-## 회사어투 옵션
+## 어투 설정
 
-답변을 회사 보고서 보고체로 축약.
+답변 어투를 회사어투(기본)와 일반어투 중에서 선택.
 
-- 적용 범위: 채팅 답변, 업무 보고서
-- 기본값: 꺼짐
+- 회사어투: 회사 보고서 보고체로 축약. 채팅 답변, 업무 보고서에 적용
+- 일반어투: "~합니다" 문장
 - 규칙 파일: [`references/company-tone.md`](skills/korean-adhd/references/company-tone.md)
 
-켜는 방법 2가지.
+변경 방법 2가지.
 
-1. 현재 세션만 적용: `/korean-adhd:korean-adhd`로 규칙 활성화 후 "회사어투 켜" 입력. 해제는 "회사어투 꺼" 입력.
-2. 새 세션마다 적용: 플래그 파일 생성. `.korean-adhd-always` 파일 함께 필요.
+1. 현재 세션만 변경: "일반어투로" 또는 "회사어투로" 입력.
+2. 새 세션마다 적용: 설정 파일 `~/.claude/.korean-adhd-tone`에 `plain`(일반어투) 또는 `company`(회사어투) 기록. 파일이 없으면 회사어투. `.korean-adhd-always` 파일 함께 필요.
 
    ```bash
    # macOS, Linux, Git Bash
-   touch ~/.claude/.korean-adhd-company
+   echo plain > ~/.claude/.korean-adhd-tone
    ```
 
    ```powershell
    # PowerShell
-   New-Item -ItemType File "$HOME\.claude\.korean-adhd-company"
+   Set-Content "$HOME\.claude\.korean-adhd-tone" plain
    ```
 
 ### 달라지는 문장
 
-| 기본 | 회사어투 |
+| 일반어투 | 회사어투 |
 | --- | --- |
 | DB를 확인하고 고쳤습니다. | DB 확인 후 수정 완료 |
 | 원인은 캐시입니다. | 원인: 캐시 |
@@ -81,7 +81,7 @@ i-have-adhd 사용 중이면 터미널에서 `claude plugin disable i-have-adhd@
 
 규칙 설명용으로 직접 작성한 글.
 
-기본:
+일반어투:
 
 > 로그인 오류를 확인했습니다. 원인은 캐시로 보이지만 아직 확실하지 않습니다. 테스트 3건이 실패했고 내일 배포할 예정입니다.
 
@@ -171,11 +171,11 @@ i-have-adhd 사용 중이면 터미널에서 `claude plugin disable i-have-adhd@
 | 이 세션에서 끄기 | "ADHD 모드 꺼", "normal mode", "stop adhd mode" 중 하나 입력 |
 | 새 세션마다 켜기 | `~/.claude/.korean-adhd-always` 파일 생성 |
 | 새 세션마다 켜기 해제 | 위 파일 삭제 |
-| 이 세션에서 회사어투 켜기·끄기 | 규칙 활성화 후 "회사어투 켜", "회사어투 꺼" 입력 |
-| 새 세션마다 회사어투 켜기 | `~/.claude/.korean-adhd-company` 파일 생성 |
-| 새 세션마다 회사어투 켜기 해제 | 위 파일 삭제 |
+| 이 세션에서 어투 변경 | "일반어투로", "회사어투로" 입력 |
+| 새 세션마다 어투 지정 | `~/.claude/.korean-adhd-tone`에 `plain` 또는 `company` 기록 |
+| 기본 어투(회사어투)로 복귀 | 위 파일 삭제 |
 
-회사어투 파일은 `.korean-adhd-always` 파일 함께 필요.
+어투 설정 파일은 `.korean-adhd-always` 파일 함께 필요.
 
 항상 켜기 파일이 있으면 세션 중 해제해도 대화 압축이나 `/clear` 후 규칙 재주입됨.
 
