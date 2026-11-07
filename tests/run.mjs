@@ -89,6 +89,8 @@ const tests = {
     assert.match(rule, /기술 용어, 수치, 검증 결과는 원문 의미 유지/);
     assert.match(rule, /3장 일반어체 절 대신 이 장 적용/);
     assert.match(rule, /1·2·4·5장과 보내기 전 점검은 그대로 적용/);
+    assert.match(rule, /사용자의 반말·존댓말과 무관하게 보고체 유지/);
+    assert.match(rule, /커밋 메시지, 코드 주석은 저장소 관례 유지/);
   },
   "회사어투 예시의 고친 쪽은 금지한 어미로 끝나지 않는다"() {
     const rows = fs.readFileSync(companyPath, "utf8").split(/\r?\n/).filter((l) => /^\| /.test(l)).slice(1);
@@ -164,6 +166,10 @@ const tests = {
     const ch4 = at("## 4장.");
     assert.ok(ch2 < ch3 && ch3 < plain && plain < company && company < ch4);
     assert.match(rule, /\| 대상 \| 일반어체\(기본\) \| 회사어투 켜짐 \|/);
+    assert.match(rule, /\| 커밋 메시지, 코드 주석 \| 저장소 관례 \| 저장소 관례 \|/);
+    // 회사어투는 사용자 말투를 따라가지 않는다
+    const toneFree = at("사용자가 반말을 쓰든 존댓말을 쓰든 어미는 보고체로");
+    assert.ok(company < toneFree && toneFree < ch4);
     // 일반어체 전용 규칙은 일반어체 절에만, 사실·연결 보존은 공통(2장)에만 있다
     for (const s of ["조사를 빼서 줄이지 않는다", "전보문처럼 조사를 깎아", "단서가 없으면 \"~합니다\"를 쓴다"]) {
       const i = at(s);
@@ -180,6 +186,10 @@ const tests = {
     const rules = fs.readFileSync(path.join(root, "skills", "korean-adhd", "references", "korean-rules.md"), "utf8");
     assert.match(rules, /\[K-Humanizer\]\(https:\/\/github\.com\/evergreentree97\/K-Humanizer\)/);
     assert.match(rules, /커밋 `c24b2c5`/);
+    // 회사어투 보고서와 부딪히는 산문 리듬 규칙은 회사어투로 넘긴다
+    const note = rules.split(/\r?\n/).find((l) => l.startsWith("**회사어투가 켜졌을 때.**")) ?? "";
+    for (const id of ["C-2", "C-9", "E-1", "E-2", "F-4", "company-tone.md"]) assert.ok(note.includes(id), id);
+    assert.ok(rules.indexOf(note) < rules.indexOf("## A. 번역투"));
     for (const head of ["고칠지 판단하기", "## K. 번역·현지화", "## L. 읽는 사람 기준", "## M. 연결 관계", "## 장르별 기준", "## 결과 돌려주기"]) {
       assert.ok(rules.includes(head), head);
     }
