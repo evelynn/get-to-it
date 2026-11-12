@@ -203,11 +203,29 @@ const tests = {
       assert.ok(rules.includes(head), head);
     }
     const ids = (p, n) => Array.from({ length: n }, (_, i) => `**${p}-${i + 1}**`);
-    for (const id of [...ids("K", 8), ...ids("L", 9), ...ids("M", 5)]) assert.ok(rules.includes(id), id);
+    for (const id of [...ids("K", 8), ...ids("L", 9), ...ids("M", 5), ...ids("N", 9)]) assert.ok(rules.includes(id), id);
     // 점검 목록은 번호가 끊기지 않는다
     const checks = rules.split("## 다 쓴 뒤 점검")[1].match(/^\d+\./gm).map((s) => parseInt(s, 10));
     assert.deepEqual(checks, Array.from({ length: checks.length }, (_, i) => i + 1));
     assert.ok(checks.length >= 10);
+  },
+  "회사어투 보고서 양식 글은 N절(회사 보고서)을 따르고 고친 쪽은 명사형으로 끝난다"() {
+    const rules = fs.readFileSync(path.join(root, "skills", "korean-adhd", "references", "korean-rules.md"), "utf8");
+    const company = fs.readFileSync(companyPath, "utf8");
+    assert.match(company, /`korean-rules\.md` N절\(회사 보고서\) 추가 적용/);
+    assert.match(company, /영어 보고서식 표현·번역투 금지/);
+    const n = rules.split("## N. 회사 보고서 (회사어투)")[1]?.split(/^## /m)[0] ?? "";
+    assert.match(n, /일반어투면 적용하지 않는다/);
+    assert.match(n, /마크다운 `##` 제목 아래 `-` 불릿/);
+    assert.match(n, /사용자가 준 양식, 이전 보고서, 사내 예시가 있으면/);
+    assert.match(n, /원문이나 사용자가 준 값만 쓴다/);
+    const rows = n.split(/\r?\n/).filter((l) => /^\| /.test(l)).slice(1);
+    assert.ok(rows.length >= 8);
+    for (const row of rows) {
+      const fixed = row.split("|")[2].trim();
+      assert.doesNotMatch(fixed, /(입니다|습니다|합니다|한다|해요|에 대한|를 통해|에 의해|에 있어서|들)$/, row);
+      assert.doesNotMatch(fixed, /에 대한|을 통해|를 통해|에 의해|에 있어서|우리는/, row);
+    }
   },
   "SKILL.md 설명이 플러그인 스킬 호출명을 쓴다"() {
     const frontmatter = fs.readFileSync(skillPath, "utf8").split("---")[1];

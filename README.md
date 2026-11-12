@@ -48,6 +48,7 @@ i-have-adhd 사용 중이면 터미널에서 `claude plugin disable i-have-adhd@
 답변 어투를 회사어투(기본)와 일반어투 중에서 선택.
 
 - 회사어투: 회사 보고서 보고체로 축약. 채팅 답변, 업무 보고서에 적용
+- 회사어투 보고서 양식 글: 국내 회사 실제 보고서 문체(개조식, 번역투 금지)로 작성
 - 일반어투: "~합니다" 문장
 - 규칙 파일: [`references/company-tone.md`](skills/korean-adhd/references/company-tone.md)
 
