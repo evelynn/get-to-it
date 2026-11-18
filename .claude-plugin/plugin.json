@@ -1,6 +1,6 @@
 {
   "name": "get-to-it",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Claude Code plugin for action-first replies: the first line is the next step, steps are numbered, AI filler gives way to plain everyday words, and a short company tone is the default. English by default, with a full Korean rule set (natural Korean and Korean business-report style).",
   "author": {
     "name": "Evelyn",

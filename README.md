@@ -2,6 +2,8 @@
 
 **English** | [한국어 회사어투](README.ko.md) | [한국어 일반어투](README.ko-plain.md)
 
+![A Claude Code reply before and after get-to-it](assets/preview-en.png)
+
 A Claude Code plugin that makes every reply something you can act on. The first line is the next step, steps are numbered, and AI filler gives way to the plain words people use at work. By default, replies use company tone, a short business-report style.
 
 It is built for readers with ADHD and works for anyone who wants Claude to get to the point. English is the default. Korean has its own full rule set, including natural Korean without translated-sounding phrasing and Korean business-report style.

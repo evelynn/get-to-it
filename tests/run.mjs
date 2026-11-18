@@ -382,10 +382,27 @@ const tests = {
       assert.doesNotMatch(read(path.join(root, file)), /상투구|AI 관용구/, file);
     }
   },
+  "훅 명령은 인라인 코드 없이 플러그인 안의 파일을 실행한다(디렉터리 제출 조건)"() {
+    const cmds = readJson("hooks/hooks.json").hooks.SessionStart.flatMap((m) => m.hooks.map((h) => h.command));
+    assert.deepEqual(cmds, ['node "${CLAUDE_PLUGIN_ROOT}/hooks/always-on.mjs"']);
+  },
+  "플러그인 아이콘이 512px 이상 정사각 PNG 다"() {
+    const buf = fs.readFileSync(path.join(root, ".claude-plugin", "icon.png"));
+    assert.equal(buf.toString("latin1", 1, 4), "PNG");
+    const [w, h] = [buf.readUInt32BE(16), buf.readUInt32BE(20)];
+    assert.equal(w, h);
+    assert.ok(w >= 512 && w <= 2048);
+  },
   "공개되는 파일에 로컬 경로·개인 메일·사설 IP 가 없다"() {
     const files = trackedFiles();
     assert.ok(files.length > 0);
     for (const file of files) {
+      if (file.endsWith(".png")) {
+        // 이미지 바이트는 우연히 경로 패턴과 겹친다. 대신 텍스트 메타데이터 청크가 없는지 본다.
+        const latin = fs.readFileSync(path.join(root, file)).toString("latin1");
+        assert.doesNotMatch(latin, /tEXt|iTXt|zTXt|eXIf/, file);
+        continue;
+      }
       const text = read(path.join(root, file));
       assert.doesNotMatch(text, /[A-Za-z]:[\\/]\w/, file);
       assert.doesNotMatch(text, /@(gmail|naver|daum|hanmail)\.(com|net)/, file);
