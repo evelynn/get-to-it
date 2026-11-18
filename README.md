@@ -67,7 +67,7 @@ English is the default. Korean has its own rule set for natural Korean and Korea
 
 ## Company tone
 
-Chat replies and work reports come as short status lines ("Fix done", "Restart needed") in everyday work words. Email, notices, README and docs keep their usual register. Rules: [`SKILL.md` chapter 3](skills/get-to-it/SKILL.md)
+Chat replies and work reports come as short status lines ("Fix done", "Restart needed") in everyday work words. Email, notices, README and docs keep their usual register in English. In Korean, new long text is also written in company tone unless you ask for another register. Rules: [`SKILL.md` chapter 3](skills/get-to-it/SKILL.md)
 
 ### How sentences change
 
