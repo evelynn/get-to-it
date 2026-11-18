@@ -8,6 +8,15 @@ A Claude Code plugin that answers in company tone: short business-report lines y
 
 It is for anyone who wants Claude to get to the point. English is the default. Korean has its own full rule set, including natural Korean without translated-sounding phrasing and Korean business-report style.
 
+## Skills
+
+| Skill | Used for | How it starts |
+| --- | --- | --- |
+| `get-to-it` | Chat replies and work reports in short status lines | `/get-to-it:get-to-it`, the always-on file, or automatically when you ask for a report |
+| `long-form` | Documents, READMEs, email, notices, UI copy, editing and translation | Automatically when you ask for that kind of text, or `/get-to-it:long-form` |
+
+Both skills remove the same defects (changed meaning, hidden point, translated or machine-sounding phrasing) using one shared list: [`shared/`](shared)
+
 ## Install
 
 Takes about 2 minutes. You need Claude Code and Node.js. Without Node.js, a hook error is logged at each session start, but the session continues.
@@ -41,7 +50,7 @@ New-Item -ItemType File "$HOME\.claude\.get-to-it-always"
 
 ## Language
 
-English is the default. Korean has its own rule set for natural Korean and Korean company reports: [`references/ko/`](skills/get-to-it/references/ko)
+English is the default. Korean has its own rule set for natural Korean and Korean company reports: [`references/ko/`](skills/get-to-it/references/ko). In any other language, the same rules apply in that language's business style.
 
 1. For the current session only, say "Korean mode" or "English mode".
 2. For every new session, write `ko` to `~/.claude/.get-to-it-lang`. Without the file, English is used. The file only works together with `.get-to-it-always`.
@@ -53,7 +62,7 @@ English is the default. Korean has its own rule set for natural Korean and Korea
 
    ```powershell
    # PowerShell
-   Set-Content "$HOME.claude.get-to-it-lang" ko
+   Set-Content "$HOME\.claude\.get-to-it-lang" ko
    ```
 
 ## Company tone

@@ -1,14 +1,14 @@
 {
   "$schema": "https://www.schemastore.org/claude-code-marketplace.json",
   "name": "get-to-it",
-  "description": "Action-first replies in plain words and short company tone. English by default, Korean included.",
+  "description": "Company-tone writing: action-first replies and reports, plus documents, editing and translation. Any language, Korean included.",
   "owner": {
     "name": "Evelyn"
   },
   "plugins": [
     {
       "name": "get-to-it",
-      "description": "First line is the next step, numbered steps, no AI filler, short company-report tone. English and Korean.",
+      "description": "Two skills: get-to-it for action-first replies and work reports, long-form for documents, editing and translation. Shared defect list. English and Korean.",
       "source": "./",
       "category": "productivity"
     }

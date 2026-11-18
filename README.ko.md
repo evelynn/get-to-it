@@ -8,6 +8,15 @@ Claude Code 답변을 회사 보고서 보고체(회사어투)로 바꾸는 플�
 
 요점부터 듣고 싶은 사용자 누구나 사용 가능. 기본 언어는 영어. 한국어는 별도 규칙(번역투 없는 한국어, 국내 회사 보고서 문체) 제공.
 
+## 스킬 구성
+
+| 스킬 | 대상 | 시작 방법 |
+| --- | --- | --- |
+| `get-to-it` | 채팅 답변, 업무 보고서(보고체) | `/get-to-it:get-to-it` 입력, 항상 켜기 파일, 보고서 요청 시 자동 |
+| `long-form` | 문서, README, 메일, 공지, UI 문구, 윤문, 번역 | 해당 글 요청 시 자동 또는 `/get-to-it:long-form` 입력 |
+
+결함 제거 기준은 두 스킬 공통(뜻 변경, 불명확, 번역투, AI 특유의 표현): [`shared/`](shared)
+
 ## 설치
 
 - 소요 시간: 약 2분
@@ -43,7 +52,7 @@ New-Item -ItemType File "$HOME\.claude\.get-to-it-always"
 
 ## 언어
 
-기본 언어는 영어. 한국어는 별도 규칙(번역투 없는 한국어, 국내 회사 보고서 문체) 제공: [`references/ko/`](skills/get-to-it/references/ko)
+기본 언어는 영어. 한국어는 별도 규칙(번역투 없는 한국어, 국내 회사 보고서 문체) 제공: [`references/ko/`](skills/get-to-it/references/ko). 그 외 언어는 같은 규칙을 해당 언어의 업무 문체에 맞게 적용.
 
 1. 현재 세션만 변경: "한국어 모드" 또는 "영어 모드" 입력.
 2. 새 세션마다 적용: `~/.claude/.get-to-it-lang`에 `ko` 기록. 파일이 없으면 영어. `.get-to-it-always` 파일 함께 필요.
@@ -55,7 +64,7 @@ New-Item -ItemType File "$HOME\.claude\.get-to-it-always"
 
    ```powershell
    # PowerShell
-   Set-Content "$HOME.claude.get-to-it-lang" ko
+   Set-Content "$HOME\.claude\.get-to-it-lang" ko
    ```
 
 ## 회사어투
