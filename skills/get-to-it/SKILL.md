@@ -1,6 +1,6 @@
 ---
 name: get-to-it
-description: 'Company-tone replies and work reports: the first line is the next step, steps are numbered, lines are short business-report status lines in plain words, and AI filler is cut. Use when the user asks for a work report, status update or other short business text, or turns it on for the session with /get-to-it:get-to-it ("normal mode" or "stop get-to-it" turns it off). Works in any language, with dedicated Korean rules. Documents, email, editing and translation belong to the long-form skill.'
+description: 'Company-tone replies and work reports: action first, numbered steps, short status lines in plain words. Use for a work report, status update or other short business text, or when turned on with /get-to-it:get-to-it. Documents, editing and translation belong to the long-form skill.'
 license: MIT
 ---
 

@@ -180,7 +180,7 @@ const tests = {
     assert.match(rule, /사용자의 반말·존댓말과 무관하게 보고체 유지/);
     assert.match(rule, /\| 커밋 메시지, 코드 주석 \| 저장소 관례 \|/);
     // 새로 쓰는 긴 글도 보고체가 기본이고 다른 어체는 요청할 때만 쓴다
-    assert.match(rule, /\| 새로 쓰는 문서, README, 공지, 메일 \| 회사 보고서 보고체 \|/);
+    assert.match(rule, /\| 채팅 답변, 업무 보고서, 새로 쓰는 문서·README·공지·메일 \| 회사 보고서 보고체 \|/);
     assert.match(rule, /\| 사용자가 어체를 지정한 글 \| 지정한 어체 \|/);
     assert.match(rule, /다른 어체는 사용자가 따로 요청할 때만 사용/);
     assert.doesNotMatch(read(skillPath), /장르의 격식/);
@@ -252,7 +252,7 @@ const tests = {
     const checks = rule.split("## Final check")[1].match(/^\d+\./gm).map((s) => parseInt(s, 10));
     assert.deepEqual(checks, Array.from({ length: checks.length }, (_, i) => i + 1));
     const ko = read(longKoPath);
-    for (const head of ["## 1. 어체", "## 2. 영어 → 한국어", "## 3. 글 종류별 기준", "## 4. 고침 예", "## 5. 추가 점검"]) assert.ok(ko.includes(head), head);
+    for (const head of ["## 1. 어체", "## 2. 영어 → 한국어", "## 3. 고침 예", "## 4. 추가 점검"]) assert.ok(ko.includes(head), head);
     assert.match(ko, /이미 일관된 글을 기본값 때문에 변경 금지/);
     assert.match(ko, /\| 새로 쓰는 글\(문서, README, 메일, 공지, 안내문\) \| 회사어투 보고체/);
     assert.match(ko, /새로 쓰는 글의 어체 변경은 사용자가 따로 요청할 때만/);
@@ -312,8 +312,10 @@ const tests = {
     const [shortFm, longFm] = [enSkillPath, longSkillPath].map((f) => read(f).split("---")[1]);
     for (const fm of [shortFm, longFm]) assert.doesNotMatch(fm, /disable-model-invocation/);
     assert.match(shortFm, /work report, status update or other short business text/);
+    // 설명은 세션마다 스킬 목록에 실리므로 300자 안에 둔다
+    for (const fm of [shortFm, longFm]) assert.ok(fm.match(/^description: '(.*)'$/m)[1].length <= 300, fm);
     assert.match(shortFm, /belong to the long-form skill/);
-    assert.match(longFm, /documents, READMEs, email, notices, customer replies, product pages and UI copy/);
+    assert.match(longFm, /write, polish, proofread, localize or translate/);
     assert.match(longFm, /belong to the get-to-it skill/);
     // 한 건만 쓰려고 불러온 경우 세션 전체에 번지지 않는다
     assert.match(read(enSkillPath), /Loaded for one report or short business text: that text only/);

@@ -1,7 +1,7 @@
 {
   "name": "get-to-it",
   "version": "0.5.0",
-  "description": "Company-tone writing for Claude Code in two skills that share one defect list. get-to-it: action-first replies and work reports in short status lines. long-form: documents, email, editing and translation that keep every fact and read as written at work. Works in any language, with dedicated Korean rules.",
+  "description": "Company-tone writing for Claude Code. get-to-it: action-first replies and work reports in short status lines. long-form: documents, editing and translation that keep every fact. Any language, with Korean rules.",
   "author": {
     "name": "Evelyn",
     "url": "https://github.com/evelynn"

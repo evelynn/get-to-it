@@ -1,6 +1,6 @@
 ---
 name: long-form
-description: 'Writes, edits and translates business text so it says exactly what the source says and reads as written by a person at work: documents, READMEs, email, notices, customer replies, product pages and UI copy. Also checks a translation against its source. Use when the user asks to write, polish, proofread, localize or translate such text. Works in any language, with dedicated Korean rules. Short replies and work reports belong to the get-to-it skill.'
+description: 'Company-tone documents, email, notices and UI copy, plus editing and translation that keep every fact of the source. Use when asked to write, polish, proofread, localize or translate such text. Short replies and work reports belong to the get-to-it skill.'
 license: MIT
 ---
 
