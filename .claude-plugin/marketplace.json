@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "get-to-it",
-      "description": "First line is the next step, numbered steps, no AI filler, company tone by default. English and Korean.",
+      "description": "First line is the next step, numbered steps, no AI filler, short company-report tone. English and Korean.",
       "source": "./",
       "category": "productivity"
     }

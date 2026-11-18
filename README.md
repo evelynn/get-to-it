@@ -1,10 +1,10 @@
 # get-to-it
 
-**English** | [한국어 회사어투](README.ko.md) | [한국어 일반어투](README.ko-plain.md)
+**English** | [한국어](README.ko.md)
 
 ![A Claude Code reply before and after get-to-it](assets/preview-en.png)
 
-A Claude Code plugin that makes every reply something you can act on. The first line is the next step, steps are numbered, and AI filler gives way to the plain words people use at work. By default, replies use company tone, a short business-report style.
+A Claude Code plugin that makes every reply something you can act on. The first line is the next step, steps are numbered, and AI filler gives way to the plain words people use at work. Replies use company tone: short business-report lines.
 
 It is for anyone who wants Claude to get to the point. English is the default. Korean has its own full rule set, including natural Korean without translated-sounding phrasing and Korean business-report style.
 
@@ -39,37 +39,30 @@ touch ~/.claude/.get-to-it-always
 New-Item -ItemType File "$HOME\.claude\.get-to-it-always"
 ```
 
-## Language and tone
+## Language
 
-| Setting | Options | Default | Setting file |
-| --- | --- | --- | --- |
-| Language | English, Korean | English | `~/.claude/.get-to-it-lang` |
-| Tone | company, plain | company | `~/.claude/.get-to-it-tone` |
+English is the default. Korean has its own rule set for natural Korean and Korean company reports: [`references/ko/`](skills/get-to-it/references/ko)
 
-- Company tone: chat replies and work reports in short status lines ("Fix done", "Restart needed"), using everyday work words. Rules: [`references/company-tone.md`](skills/get-to-it/references/company-tone.md)
-- Plain tone: ordinary full sentences.
-- Korean: a separate rule set for natural Korean and Korean company reports. Rules: [`references/ko/`](skills/get-to-it/references/ko)
-
-There are two ways to change them.
-
-1. For the current session only, say "Korean mode" or "English mode" for language, and "plain tone" or "company tone" for tone.
-2. For every new session, write `ko` to the language file or `plain` to the tone file. Without the files, English and company tone are used. The files only work together with `.get-to-it-always`.
+1. For the current session only, say "Korean mode" or "English mode".
+2. For every new session, write `ko` to `~/.claude/.get-to-it-lang`. Without the file, English is used. The file only works together with `.get-to-it-always`.
 
    ```bash
    # macOS, Linux, Git Bash
    echo ko > ~/.claude/.get-to-it-lang
-   echo plain > ~/.claude/.get-to-it-tone
    ```
 
    ```powershell
    # PowerShell
-   Set-Content "$HOME\.claude\.get-to-it-lang" ko
-   Set-Content "$HOME\.claude\.get-to-it-tone" plain
+   Set-Content "$HOME.claude.get-to-it-lang" ko
    ```
+
+## Company tone
+
+Chat replies and work reports come as short status lines ("Fix done", "Restart needed") in everyday work words. Email, notices, README and docs keep their usual register. Rules: [`SKILL.md` chapter 3](skills/get-to-it/SKILL.md)
 
 ### How sentences change
 
-| Plain tone | Company tone |
+| Ordinary sentence | Company tone |
 | --- | --- |
 | I checked the DB and fixed it. | DB checked, fix done |
 | The cause is the cache. | Cause: cache |
@@ -82,7 +75,7 @@ There are two ways to change them.
 
 Written by hand to illustrate the rules.
 
-Plain tone:
+Ordinary reply:
 
 > I checked the login error. The cause looks like the cache, but that is not certain yet. Three tests failed, and we plan to deploy tomorrow.
 
@@ -100,7 +93,7 @@ Company tone:
 
 ## Examples
 
-These examples are written by hand to illustrate the rules, in company tone. Actual replies vary with the model and conversation.
+These examples are written by hand to illustrate the rules. Actual replies vary with the model and conversation.
 
 ### Example 1. Fixing an error
 
@@ -174,11 +167,9 @@ Deletes, force pushes and schema changes get a confirmation first.
 | Stop turning on for new sessions | Delete that file |
 | Change language for this session | Say "Korean mode" or "English mode" |
 | Set language for every new session | Write `ko` to `~/.claude/.get-to-it-lang` |
-| Change tone for this session | Say "plain tone" or "company tone" |
-| Set tone for every new session | Write `plain` or `company` to `~/.claude/.get-to-it-tone` |
-| Back to the defaults (English, company tone) | Delete the setting files |
+| Back to English | Delete `~/.claude/.get-to-it-lang` |
 
-The setting files only work together with the `.get-to-it-always` file. With the always-on file present, the rules are injected again after compaction or `/clear`, even if you turned them off during the session.
+The language file only works together with the `.get-to-it-always` file. With the always-on file present, the rules are injected again after compaction or `/clear`, even if you turned them off during the session.
 
 ## License
 

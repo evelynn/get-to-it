@@ -1,10 +1,10 @@
 # get-to-it
 
-[English](README.md) | **한국어 회사어투** | [한국어 일반어투](README.ko-plain.md)
+[English](README.md) | **한국어**
 
 ![get-to-it 적용 전후 답변 비교](assets/preview-ko.png)
 
-Claude Code 답변을 바로 행동 가능한 형태로 변경하는 플러그인. 첫 줄은 할 일, 단계는 번호, AI 특유의 표현 대신 회사에서 쓰는 쉬운 말 사용. 기본 어투는 회사 보고서 보고체(회사어투).
+Claude Code 답변을 바로 행동 가능한 형태로 변경하는 플러그인. 첫 줄은 할 일, 단계는 번호, AI 특유의 표현 대신 회사에서 쓰는 쉬운 말 사용. 답변 어투는 회사 보고서 보고체(회사어투).
 
 요점부터 듣고 싶은 사용자 누구나 사용 가능. 기본 언어는 영어. 한국어는 별도 규칙(번역투 없는 한국어, 국내 회사 보고서 문체) 제공.
 
@@ -41,39 +41,33 @@ touch ~/.claude/.get-to-it-always
 New-Item -ItemType File "$HOME\.claude\.get-to-it-always"
 ```
 
-## 언어와 어투
+## 언어
 
-| 설정 | 선택지 | 기본값 | 설정 파일 |
-| --- | --- | --- | --- |
-| 언어 | 영어, 한국어 | 영어 | `~/.claude/.get-to-it-lang` |
-| 어투 | 회사어투, 일반어투 | 회사어투 | `~/.claude/.get-to-it-tone` |
+기본 언어는 영어. 한국어는 별도 규칙(번역투 없는 한국어, 국내 회사 보고서 문체) 제공: [`references/ko/`](skills/get-to-it/references/ko)
 
-- 한국어 사용 시 언어 설정 필요. 설정 파일에 `ko` 기록 또는 세션 중 "한국어 모드" 입력
-- 회사어투: 회사 보고서 보고체로 축약. 단어는 회사에서 실제로 쓰는 쉬운 말 사용. 채팅 답변, 업무 보고서에 적용
-- 회사어투 보고서 양식 글: 국내 회사 실제 보고서 문체(개조식, 번역투 금지)로 작성
-- 일반어투: "~합니다" 문장
-- 한국어 규칙 폴더: [`references/ko/`](skills/get-to-it/references/ko)
-
-변경 방법 2가지.
-
-1. 현재 세션만 변경: 언어는 "한국어 모드" 또는 "영어 모드", 어투는 "일반어투로" 또는 "회사어투로" 입력.
-2. 새 세션마다 적용: 언어 파일에 `ko`, 어투 파일에 `plain`(일반어투) 기록. 파일이 없으면 영어·회사어투. `.get-to-it-always` 파일 함께 필요.
+1. 현재 세션만 변경: "한국어 모드" 또는 "영어 모드" 입력.
+2. 새 세션마다 적용: `~/.claude/.get-to-it-lang`에 `ko` 기록. 파일이 없으면 영어. `.get-to-it-always` 파일 함께 필요.
 
    ```bash
    # macOS, Linux, Git Bash
    echo ko > ~/.claude/.get-to-it-lang
-   echo plain > ~/.claude/.get-to-it-tone
    ```
 
    ```powershell
    # PowerShell
-   Set-Content "$HOME\.claude\.get-to-it-lang" ko
-   Set-Content "$HOME\.claude\.get-to-it-tone" plain
+   Set-Content "$HOME.claude.get-to-it-lang" ko
    ```
+
+## 회사어투
+
+- 적용 대상: 채팅 답변, 업무 보고서. 회사 보고서 보고체로 축약하고 단어는 회사에서 실제로 쓰는 쉬운 말 사용
+- 보고서 양식 글: 국내 회사 실제 보고서 문체(개조식, 번역투 금지)로 작성
+- 메일, 공지, README, 문서: 장르의 격식 유지
+- 규칙: [`references/ko/rules.md`](skills/get-to-it/references/ko/rules.md) 3장
 
 ### 달라지는 문장
 
-| 일반어투 | 회사어투 |
+| 일반 문장 | 회사어투 |
 | --- | --- |
 | DB를 확인하고 고쳤습니다. | DB 확인 후 수정 완료 |
 | 원인은 캐시입니다. | 원인: 캐시 |
@@ -86,7 +80,7 @@ New-Item -ItemType File "$HOME\.claude\.get-to-it-always"
 
 규칙 설명용으로 직접 작성한 글.
 
-일반어투:
+일반 답변:
 
 > 로그인 오류를 확인했습니다. 원인은 캐시로 보이지만 아직 확실하지 않습니다. 테스트 3건이 실패했고 내일 배포할 예정입니다.
 
@@ -104,7 +98,7 @@ New-Item -ItemType File "$HOME\.claude\.get-to-it-always"
 
 ## 적용 예시
 
-아래 예시는 규칙 설명용으로 직접 작성한 글. 한국어 설정·회사어투 적용 기준. 실제 답변은 모델과 대화 내용에 따라 달라짐.
+아래 예시는 규칙 설명용으로 직접 작성한 글. 한국어 설정 기준. 실제 답변은 모델과 대화 내용에 따라 달라짐.
 
 ### 예시 1. 오류를 고칠 때
 
@@ -178,11 +172,9 @@ New-Item -ItemType File "$HOME\.claude\.get-to-it-always"
 | 새 세션마다 켜기 해제 | 위 파일 삭제 |
 | 이 세션에서 언어 변경 | "한국어 모드", "영어 모드" 입력 |
 | 새 세션마다 한국어 적용 | `~/.claude/.get-to-it-lang`에 `ko` 기록 |
-| 이 세션에서 어투 변경 | "일반어투로", "회사어투로" 입력 |
-| 새 세션마다 어투 지정 | `~/.claude/.get-to-it-tone`에 `plain` 또는 `company` 기록 |
-| 기본값(영어·회사어투)으로 복귀 | 설정 파일 삭제 |
+| 영어로 복귀 | `~/.claude/.get-to-it-lang` 삭제 |
 
-설정 파일은 `.get-to-it-always` 파일 함께 필요.
+언어 파일은 `.get-to-it-always` 파일 함께 필요.
 
 항상 켜기 파일이 있으면 세션 중 해제해도 대화 압축이나 `/clear` 후 규칙 재주입됨.
 
