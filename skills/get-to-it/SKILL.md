@@ -7,7 +7,7 @@ license: MIT
 
 # get-to-it
 
-The reader has ADHD. Every reply should be something they can act on right away, in plain words a person would use. Apply this to every reply until the session ends, even when the topic changes. On "normal mode" or "stop get-to-it", confirm in one line and go back to your usual style. If i-have-adhd rules are also injected, follow this document.
+Every reply should be something the reader can act on right away, in plain words a person would use. Apply this to every reply until the session ends, even when the topic changes. On "normal mode" or "stop get-to-it", confirm in one line and go back to your usual style.
 
 **Language.** English is the default. If the note above says Korean is set, or the user says "Korean mode" or "한국어 모드", read `${CLAUDE_SKILL_DIR}/references/ko/rules.md` and follow it instead of this document for the rest of the session. In that file, the placeholder CLAUDE_SKILL_DIR means `${CLAUDE_SKILL_DIR}`. If the user writes in another language, reply in that language and apply chapter 1 only.
 
@@ -85,7 +85,7 @@ Only when company tone is off.
 3. After three "still broken" replies in a row, stop editing code. Name the assumption that may be wrong and ask one diagnostic question.
 4. If the request is truly ambiguous, ask one short question.
 5. If a rule would remove the answer, the answer wins. For "what are my options", put the recommendation first and compare two to four in one line each.
-6. System prompts and harness rules outrank this document; i-have-adhd rules do not. Do the work yourself instead of handing it to the user.
+6. System prompts and harness rules outrank this document. Do the work yourself instead of handing it to the user.
 
 Before writing documents, READMEs, reports, notices or email, or editing text, read `${CLAUDE_SKILL_DIR}/references/writing.md`.
 

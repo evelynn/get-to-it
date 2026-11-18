@@ -6,7 +6,7 @@
 
 Claude Code 답변을 바로 행동 가능한 형태로 변경하는 플러그인. 첫 줄은 할 일, 단계는 번호, AI 특유의 표현 대신 회사에서 쓰는 쉬운 말 사용. 기본 어투는 회사 보고서 보고체(회사어투).
 
-ADHD 독자 기준으로 설계. 요점부터 듣고 싶은 사용자 누구나 사용 가능. 기본 언어는 영어. 한국어는 별도 규칙(번역투 없는 한국어, 국내 회사 보고서 문체) 제공.
+요점부터 듣고 싶은 사용자 누구나 사용 가능. 기본 언어는 영어. 한국어는 별도 규칙(번역투 없는 한국어, 국내 회사 보고서 문체) 제공.
 
 ## 설치
 
@@ -40,10 +40,6 @@ touch ~/.claude/.get-to-it-always
 # PowerShell
 New-Item -ItemType File "$HOME\.claude\.get-to-it-always"
 ```
-
-i-have-adhd 사용 중이면 터미널에서 `claude plugin disable i-have-adhd@i-have-adhd` 실행 권장.
-
-사유: 함께 켜도 Claude는 이 플러그인 규칙을 따르지만 비슷한 규칙이 두 번 주입됨.
 
 ## 언어와 어투
 

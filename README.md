@@ -6,7 +6,7 @@
 
 A Claude Code plugin that makes every reply something you can act on. The first line is the next step, steps are numbered, and AI filler gives way to the plain words people use at work. By default, replies use company tone, a short business-report style.
 
-It is built for readers with ADHD and works for anyone who wants Claude to get to the point. English is the default. Korean has its own full rule set, including natural Korean without translated-sounding phrasing and Korean business-report style.
+It is for anyone who wants Claude to get to the point. English is the default. Korean has its own full rule set, including natural Korean without translated-sounding phrasing and Korean business-report style.
 
 ## Install
 
@@ -38,8 +38,6 @@ touch ~/.claude/.get-to-it-always
 # PowerShell
 New-Item -ItemType File "$HOME\.claude\.get-to-it-always"
 ```
-
-If you use i-have-adhd, turn it off with `claude plugin disable i-have-adhd@i-have-adhd`. With both on, Claude follows this plugin, but similar rules get injected twice.
 
 ## Language and tone
 

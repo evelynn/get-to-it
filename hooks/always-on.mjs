@@ -1,5 +1,4 @@
 // SessionStart 훅: 사용자가 플래그 파일을 만들어 둔 경우에만 규칙 전문을 주입한다.
-// i-have-adhd(MIT, Ayoub Ghriss)의 always-on 훅을 바탕으로 했다.
 // 어떤 실패도 세션 시작을 막지 않는다. 항상 exit 0 으로 끝난다.
 
 import fs from "node:fs";

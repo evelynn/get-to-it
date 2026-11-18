@@ -217,6 +217,11 @@ const tests = {
     assert.match(frontmatter, /\/get-to-it:get-to-it/);
     assert.doesNotMatch(frontmatter, /\/get-to-it(?!:)/);
   },
+  "LICENSE 밖에는 ADHD·i-have-adhd 언급이 없다"() {
+    for (const file of trackedFiles().filter((f) => f !== "LICENSE" && !f.startsWith("tests/") && !f.endsWith(".png"))) {
+      assert.doesNotMatch(read(path.join(root, file)), /adhd/i, file);
+    }
+  },
   "옛 이름(korean-adhd)이 공개 파일에 남지 않는다"() {
     for (const file of trackedFiles().filter((f) => !f.startsWith("tests/"))) {
       assert.doesNotMatch(read(path.join(root, file)), /korean-adhd|Korean-Adhd|KOREAN-ADHD/, file);
