@@ -4,7 +4,7 @@
 
 A Claude Code plugin that makes Korean replies immediately actionable and strips out translated-sounding phrasing and AI clichés.
 
-It combines the reply rules of [i-have-adhd](https://github.com/ayghri/i-have-adhd), the Korean writing rules of [im-not-ai](https://github.com/epoko77-ai/im-not-ai), and the editing and translation judgment rules of [K-Humanizer](https://github.com/evergreentree97/K-Humanizer).
+It combines the reply rules of [i-have-adhd](https://github.com/ayghri/i-have-adhd), the Korean writing rules of [im-not-ai](https://github.com/epoko77-ai/im-not-ai), and the editing and translation judgment rules of [K-Humanizer](https://github.com/evergreentree97/K-Humanizer). It also applies the clarity criteria from [Zonder Labs](https://zonderlabs.com/slop) (hidden actors, vague wording, empty sentences) so readers can see who did what and what the point is.
 
 The rules are written for Korean readers. If you write to Claude in English, it replies in English and applies only the reply-shape rules.
 

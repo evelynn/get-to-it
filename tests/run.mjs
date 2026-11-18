@@ -100,6 +100,9 @@ const tests = {
     assert.match(rule, /사용자의 반말·존댓말과 무관하게 보고체 유지/);
     assert.match(rule, /커밋 메시지, 코드 주석은 저장소 관례 유지/);
     assert.match(rule, /단어는 회사에서 실제로 쓰는 쉬운 말 사용/);
+    const skill = fs.readFileSync(skillPath, "utf8");
+    assert.match(skill, /\*\*명확하게 쓴다\.\*\*/);
+    assert.match(skill, /누가 무엇을 했는지와 요점이 보이는지 확인한다/);
     assert.match(rule, /명사 4개 이상 연속 금지/);
   },
   "회사어투 예시의 고친 쪽은 금지한 어미로 끝나지 않는다"() {
@@ -205,7 +208,7 @@ const tests = {
       assert.ok(rules.includes(head), head);
     }
     const ids = (p, n) => Array.from({ length: n }, (_, i) => `**${p}-${i + 1}**`);
-    for (const id of [...ids("K", 8), ...ids("L", 9), ...ids("M", 5), ...ids("N", 9)]) assert.ok(rules.includes(id), id);
+    for (const id of [...ids("K", 8), ...ids("L", 9), ...ids("M", 5), ...ids("N", 9), ...ids("O", 5)]) assert.ok(rules.includes(id), id);
     // 점검 목록은 번호가 끊기지 않는다
     const checks = rules.split("## 다 쓴 뒤 점검")[1].match(/^\d+\./gm).map((s) => parseInt(s, 10));
     assert.deepEqual(checks, Array.from({ length: checks.length }, (_, i) => i + 1));

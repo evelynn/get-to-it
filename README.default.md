@@ -4,7 +4,7 @@
 
 Claude Code의 한국어 답변을 바로 행동할 수 있는 모양으로 바꾸고 번역투와 AI 특유의 표현을 없애는 플러그인입니다.
 
-[i-have-adhd](https://github.com/ayghri/i-have-adhd)의 답변 규칙, [im-not-ai](https://github.com/epoko77-ai/im-not-ai)의 한국어 문체 규칙, [K-Humanizer](https://github.com/evergreentree97/K-Humanizer)의 윤문·번역 판단 기준을 합쳤습니다.
+[i-have-adhd](https://github.com/ayghri/i-have-adhd)의 답변 규칙, [im-not-ai](https://github.com/epoko77-ai/im-not-ai)의 한국어 문체 규칙, [K-Humanizer](https://github.com/evergreentree97/K-Humanizer)의 윤문·번역 판단 기준을 합쳤습니다. 누가 무엇을 했는지와 요점이 바로 보이도록 [Zonder Labs](https://zonderlabs.com/slop)의 명확성 기준(행위자 숨김, 모호한 표현, 내용 없는 문장)도 반영했습니다.
 
 ## 설치
 

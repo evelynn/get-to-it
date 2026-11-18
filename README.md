@@ -4,7 +4,7 @@
 
 Claude Code 한국어 답변을 바로 행동 가능한 형태로 변경. 번역투와 AI 특유의 표현 제거.
 
-[i-have-adhd](https://github.com/ayghri/i-have-adhd) 답변 규칙, [im-not-ai](https://github.com/epoko77-ai/im-not-ai) 한국어 문체 규칙, [K-Humanizer](https://github.com/evergreentree97/K-Humanizer) 윤문·번역 판단 기준 통합.
+[i-have-adhd](https://github.com/ayghri/i-have-adhd) 답변 규칙, [im-not-ai](https://github.com/epoko77-ai/im-not-ai) 한국어 문체 규칙, [K-Humanizer](https://github.com/evergreentree97/K-Humanizer) 윤문·번역 판단 기준 통합. 누가 무엇을 했는지와 요점이 바로 보이도록 [Zonder Labs](https://zonderlabs.com/slop) 명확성 기준(행위자 숨김, 모호한 표현, 내용 없는 문장) 반영.
 
 ## 설치
 
