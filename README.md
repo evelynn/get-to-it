@@ -4,6 +4,19 @@
 
 ![A Claude Code reply before and after get-to-it](assets/preview-en.png)
 
+**At a glance** (from [Examples](#examples) 1 and 2)
+
+| What the reply gives you | Before | After |
+| --- | --- | --- |
+| First line | Small talk ("Sure, let me take a look!") | The action (fix `verifyToken` in `src/auth.ts:42`) |
+| Where to fix | Not given | `src/auth.ts:42` |
+| Cause | Not given | `Authorization` header not read |
+| Command to run | Not given | `npm test -- auth.spec.ts` |
+| Your next step | Not given | Paste the first failing line if a test fails |
+| Greeting, recap and sign-off sentences | 3 | 0 |
+| Progress | "finished soon" | Step 3/5 done |
+| Time left | Not given | About 5 minutes |
+
 A Claude Code plugin that answers in company tone: short business-report lines you can act on. The first line is the next step, steps are numbered, and AI filler gives way to the plain words people use at work.
 
 It is for anyone who wants Claude to get to the point. English is the default. Korean has its own full rule set, including natural Korean without translated-sounding phrasing and Korean business-report style.
@@ -50,7 +63,7 @@ New-Item -ItemType File "$HOME\.claude\.get-to-it-always"
 
 ## Language
 
-English is the default. Korean has its own rule set for natural Korean and Korean company reports: [`references/ko/`](skills/get-to-it/references/ko). In any other language, the same rules apply in that language's business style.
+English is the default. Korean has its own rule set for natural Korean and Korean company reports: [`references/ko/`](skills/get-to-it/references/ko) for replies and reports, [`long-form/ko.md`](skills/long-form/ko.md) for documents, editing and translation. In any other language, the same rules apply in that language's business style.
 
 1. For the current session only, say "Korean mode" or "English mode".
 2. For every new session, write `ko` to `~/.claude/.get-to-it-lang`. Without the file, English is used. The file only works together with `.get-to-it-always`.
@@ -135,11 +148,11 @@ Before:
 
 After:
 
-> Step 3/5 done: auth document translated. About 5 minutes left.
+> Step 3/5 done: auth document translated
 >
-> Next: translating the payment document
+> Time left: about 5 minutes. Payment document next
 
-Progress is restated every time, and time is a number.
+Progress is restated every time, and time is a number. No "Next:" line, since the user has nothing to do.
 
 ### Example 3. Hard-to-reverse work
 
