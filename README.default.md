@@ -41,7 +41,7 @@ i-have-adhd를 쓰고 있었다면 터미널에서 `claude plugin disable i-have
 
 ## 어투 설정
 
-답변 어투는 회사어투(기본)와 일반어투 중에서 고릅니다. 회사어투는 채팅 답변과 업무 보고서를 회사 보고서의 보고체로 줄이고 일반어투는 "~합니다"로 씁니다. 회사어투에서 보고서 양식으로 쓰는 글은 국내 회사에서 실제로 쓰는 개조식 보고서 문체로 쓰고 번역투를 쓰지 않습니다. 회사어투 규칙은 [`references/company-tone.md`](skills/korean-adhd/references/company-tone.md)에 있습니다.
+답변 어투는 회사어투(기본)와 일반어투 중에서 고릅니다. 회사어투는 채팅 답변과 업무 보고서를 회사 보고서의 보고체로 줄이되 단어는 쉬운 일상어로 쓰고 일반어투는 "~합니다"로 씁니다. 회사어투에서 보고서 양식으로 쓰는 글은 국내 회사에서 실제로 쓰는 개조식 보고서 문체로 쓰고 번역투를 쓰지 않습니다. 회사어투 규칙은 [`references/company-tone.md`](skills/korean-adhd/references/company-tone.md)에 있습니다.
 
 바꾸는 방법은 두 가지입니다.
 

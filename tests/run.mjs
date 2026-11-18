@@ -99,6 +99,8 @@ const tests = {
     assert.match(rule, /1·2·4·5장과 보내기 전 점검은 그대로 적용/);
     assert.match(rule, /사용자의 반말·존댓말과 무관하게 보고체 유지/);
     assert.match(rule, /커밋 메시지, 코드 주석은 저장소 관례 유지/);
+    assert.match(rule, /단어는 일상에서 쓰는 쉬운 말 사용/);
+    assert.match(rule, /명사 4개 이상 연속 금지/);
   },
   "회사어투 예시의 고친 쪽은 금지한 어미로 끝나지 않는다"() {
     const rows = fs.readFileSync(companyPath, "utf8").split(/\r?\n/).filter((l) => /^\| /.test(l)).slice(1);

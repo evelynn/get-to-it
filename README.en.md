@@ -43,7 +43,7 @@ If you were using i-have-adhd, turn it off in your terminal with `claude plugin 
 
 ## Tone setting
 
-Replies use one of two tones: company tone (default) or plain style. Company tone shortens chat replies and work reports to Korean business-report style. Report documents written in company tone follow the bullet-point style of real Korean company reports, without translated-English phrasing. Plain style writes ordinary polite sentences. The company tone rules are in [`references/company-tone.md`](skills/korean-adhd/references/company-tone.md).
+Replies use one of two tones: company tone (default) or plain style. Company tone shortens chat replies and work reports to Korean business-report style while keeping the words plain and everyday. Report documents written in company tone follow the bullet-point style of real Korean company reports, without translated-English phrasing. Plain style writes ordinary polite sentences. The company tone rules are in [`references/company-tone.md`](skills/korean-adhd/references/company-tone.md).
 
 There are two ways to change it.
 
