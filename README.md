@@ -20,19 +20,23 @@
 **Token usage** (measured: 10 questions × Korean and English × off and on = 40 runs, average per question)
 
 ```mermaid
+%%{init: {"themeVariables": {"xyChart": {"plotColorPalette": "#94a3b8, #0d9488"}}}}%%
 xychart-beta
     title "Output tokens (lower is better)"
     x-axis ["Korean off", "Korean on", "English off", "English on"]
-    y-axis "Tokens" 0 --> 1400
-    bar [1194, 879, 916, 616]
+    y-axis 0 --> 1400
+    bar [1194, 0, 916, 0]
+    bar [0, 879, 0, 616]
 ```
 
 ```mermaid
+%%{init: {"themeVariables": {"xyChart": {"plotColorPalette": "#94a3b8, #0d9488"}}}}%%
 xychart-beta
     title "Input tokens (including the rules)"
     x-axis ["Korean off", "Korean on", "English off", "English on"]
-    y-axis "Tokens" 0 --> 14000
-    bar [8574, 12587, 8540, 10634]
+    y-axis 0 --> 14000
+    bar [8574, 0, 8540, 0]
+    bar [0, 12587, 0, 10634]
 ```
 
 | Measure | Korean off | Korean on | English off | English on |

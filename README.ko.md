@@ -20,19 +20,23 @@
 **토큰 사용량** (실측: 질문 10개 × 한국어·영어 × 끔·켬 = 40회, 질문 1건 평균)
 
 ```mermaid
+%%{init: {"themeVariables": {"xyChart": {"plotColorPalette": "#94a3b8, #0d9488"}}}}%%
 xychart-beta
     title "출력 토큰 (낮을수록 좋음)"
     x-axis ["한국어 끔", "한국어 켬", "영어 끔", "영어 켬"]
-    y-axis "토큰" 0 --> 1400
-    bar [1194, 879, 916, 616]
+    y-axis 0 --> 1400
+    bar [1194, 0, 916, 0]
+    bar [0, 879, 0, 616]
 ```
 
 ```mermaid
+%%{init: {"themeVariables": {"xyChart": {"plotColorPalette": "#94a3b8, #0d9488"}}}}%%
 xychart-beta
     title "입력 토큰 (규칙 글 포함)"
     x-axis ["한국어 끔", "한국어 켬", "영어 끔", "영어 켬"]
-    y-axis "토큰" 0 --> 14000
-    bar [8574, 12587, 8540, 10634]
+    y-axis 0 --> 14000
+    bar [8574, 0, 8540, 0]
+    bar [0, 12587, 0, 10634]
 ```
 
 | 항목 | 한국어 끔 | 한국어 켬 | 영어 끔 | 영어 켬 |
