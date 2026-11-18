@@ -156,7 +156,11 @@ const tests = {
   },
   "영어 회사어투 규칙은 상태 문구·표 정리·상태 구분을 명시하고 고친 쪽은 대화체가 아니다"() {
     const rule = read(enSkillPath).split("## 3. Company tone")[1].split(/^## /m)[0];
-    assert.match(rule, /"X done", "X needed", "X scheduled", "X requested"/);
+    // 영어는 실제 업무 문장 형식: 주어 생략 동사 시작, 라벨과 값, 요청은 명령형
+    assert.match(rule, /drop "I" and "we" and start with the verb/);
+    assert.match(rule, /A fact: label and value/);
+    assert.match(rule, /An ask: an imperative that names the action/);
+    assert.doesNotMatch(read(enSkillPath) + read(path.join(root, "README.md")), /"X requested"|\b(line|log|choice) requested\b(?!")/);
     assert.match(rule, /Comparisons in tables/);
     assert.match(rule, /Keep done, in progress and under review apart/);
     assert.match(rule, /never mark unverified work "done"/);

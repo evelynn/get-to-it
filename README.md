@@ -67,18 +67,18 @@ English is the default. Korean has its own rule set for natural Korean and Korea
 
 ## Company tone
 
-Chat replies and work reports come as short status lines ("Fix done", "Restart needed") in everyday work words. Email, notices, README and docs keep their usual register in English. In Korean, new long text is also written in company tone unless you ask for another register. Rules: [`SKILL.md` chapter 3](skills/get-to-it/SKILL.md)
+Chat replies and work reports come as the short lines people write in status updates ("Fixed the token check", "Cause: cache", "Restart the server") in everyday work words. Email, notices, README and docs keep their usual register in English. In Korean, new long text is also written in company tone unless you ask for another register. Rules: [`SKILL.md` chapter 3](skills/get-to-it/SKILL.md)
 
 ### How sentences change
 
 | Ordinary sentence | Company tone |
 | --- | --- |
-| I checked the DB and fixed it. | DB checked, fix done |
+| I went ahead and checked the DB, and I was able to fix it. | Checked the DB and fixed it |
 | The cause is the cache. | Cause: cache |
-| You need to restart the server. | Server restart needed |
-| We'll deploy tomorrow. | Deploy scheduled for tomorrow |
-| The cache might be the cause. | Possible cause: cache (needs checking) |
-| Next: please paste the first failing line. | Next: first failing line requested |
+| You need to restart the server. | Restart the server |
+| We'll deploy tomorrow. | Deploying tomorrow |
+| The cache might be the cause. | Possible cause: cache (unconfirmed) |
+| Could you paste the first failing line? | Paste the first failing line |
 
 ### Report example
 
@@ -90,15 +90,15 @@ Ordinary reply:
 
 Company tone:
 
-> Login error checked
+> Checked the login error
 >
-> Possible cause: cache (needs checking)
+> Possible cause: cache (unconfirmed)
 >
 > 3 tests failed
 >
-> Deploy scheduled for tomorrow
+> Deploying tomorrow
 >
-> Next: first line of the failure log requested
+> Next: paste the first line of the failure log
 
 ## Examples
 
@@ -114,14 +114,14 @@ Before:
 
 After:
 
-> Fix needed: `verifyToken` in `src/auth.ts:42`
+> Fix `verifyToken` in `src/auth.ts:42`
 >
 > Reason: request's `Authorization` header not read
 >
 > 1. Change line 42 to read the header.
 > 2. Run `npm test -- auth.spec.ts`.
 >
-> Next: first failing line requested if a test fails
+> Next: if a test fails, paste the first failing line
 
 The first line is the action. The dependency topic waits until the current problem is done.
 
@@ -137,7 +137,7 @@ After:
 
 > Step 3/5 done: auth document translated. About 5 minutes left.
 >
-> Next: payment document translation scheduled
+> Next: translating the payment document
 
 Progress is restated every time, and time is a number.
 
@@ -153,7 +153,7 @@ After:
 >
 > Deleting them makes their commits hard to find.
 >
-> Next: choice requested between the 10 merged branches and all 12
+> Next: pick the 10 merged branches or all 12
 
 Deletes, force pushes and schema changes get a confirmation first.
 
@@ -161,9 +161,9 @@ Deletes, force pushes and schema changes get a confirmation first.
 
 | Before | After |
 | --- | --- |
-| Let's delve into the logs to ensure a seamless deployment. | Logs to check before deploy |
+| Let's delve into the logs to ensure a seamless deployment. | Check the logs before deploying |
 | It's important to note that environment variables play a crucial role in deployment. | Deploy depends on environment variables |
-| We should leverage the existing cache layer in order to improve performance. | Existing cache reuse proposed for speed |
+| We should leverage the existing cache layer in order to improve performance. | Proposal: reuse the existing cache for speed |
 | In conclusion, it is the cache that is the cause. | Cause: cache |
 
 ## Turning it on and off
