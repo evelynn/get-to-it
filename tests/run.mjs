@@ -15,7 +15,8 @@ const longDir = path.join(root, "skills", "long-form"); // 긴 글·윤문·번�
 const longSkillPath = path.join(longDir, "SKILL.md");
 const longEnPath = path.join(longDir, "en.md"); // 긴 글 규칙은 언어별 파일 하나(절차 + 결함 진단표)
 const longKoPath = path.join(longDir, "ko.md");
-const koDocs = [skillPath, longKoPath];
+const reportPath = path.join(skillDir, "references", "ko", "report.md"); // 한국어 보고서 양식 글(요청 시에만 읽음)
+const koDocs = [skillPath, longKoPath, reportPath];
 const ruleDocs = [enSkillPath, longSkillPath, longEnPath, ...koDocs];
 const enReadmePath = path.join(root, "README.md"); // 메인 = 영어
 const readmePath = path.join(root, "README.ko.md"); // 한국어
@@ -343,7 +344,7 @@ const tests = {
     // 한국어 규칙(rules.md)의 경로는 get-to-it 스킬 폴더 기준이다
     const refs = [
       [enSkillPath, skillDir, [skillPath, longEnPath]],
-      [skillPath, skillDir, [enSkillPath, longKoPath, longEnPath]],
+      [skillPath, skillDir, [enSkillPath, longKoPath, longEnPath, reportPath]],
       [longSkillPath, longDir, [enSkillPath, longEnPath, longKoPath]],
     ];
     // 긴 글 한 건에 읽는 파일은 언어별 하나이고 다른 파일을 더 읽게 하지 않는다
@@ -372,10 +373,13 @@ const tests = {
     // rules.md 의 표는 고침 전후 문장 예시라 제외한다(3장 표는 위 테스트가 본다)
     assert.deepEqual(plainEndings(skillPath, { tables: false }), []);
     assert.deepEqual(plainEndings(longKoPath, { tables: true }), []);
+    assert.deepEqual(plainEndings(reportPath, { tables: false }), []);
   },
   "회사어투 보고서 양식 글은 국내 회사 보고서 문체를 따르고 고친 쪽은 명사형으로 끝난다"() {
+    // 상시 주입량을 줄이려고 보고서 기준은 report.md 로 분리하고 rules.md 는 읽을 때만 가리킨다
     const company = read(skillPath).split("## 3장. 회사어투")[1].split(/^## /m)[0];
-    const n = company.split("**보고서 양식 글.**")[1] ?? "";
+    assert.match(company, /\*\*보고서 양식 글\.\*\* .*`\$\{CLAUDE_SKILL_DIR\}\/references\/ko\/report\.md`를 읽고/);
+    const n = read(reportPath);
     assert.match(n, /영어 보고서식 표현·번역투 금지/);
     assert.match(n, /마크다운 `##` 제목 아래 `-` 불릿/);
     assert.match(n, /사용자가 준 양식, 이전 보고서, 사내 예시가 있으면/);
