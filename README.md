@@ -4,7 +4,7 @@
 
 ![A Claude Code reply before and after get-to-it](assets/preview-en.png)
 
-A Claude Code plugin that makes every reply something you can act on. The first line is the next step, steps are numbered, and AI filler gives way to the plain words people use at work. Replies use company tone: short business-report lines.
+A Claude Code plugin that answers in company tone: short business-report lines you can act on. The first line is the next step, steps are numbered, and AI filler gives way to the plain words people use at work.
 
 It is for anyone who wants Claude to get to the point. English is the default. Korean has its own full rule set, including natural Korean without translated-sounding phrasing and Korean business-report style.
 
