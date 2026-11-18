@@ -1,10 +1,10 @@
-# Korean-Adhd
+# get-to-it
 
-[한국어 회사어투](README.md) | **한국어 기본어투** | [English](README.en.md)
+[English](README.md) | [한국어 회사어투](README.ko.md) | **한국어 일반어투**
 
-Claude Code의 한국어 답변을 바로 행동할 수 있는 모양으로 바꾸고 번역투와 AI 특유의 표현을 없애는 플러그인입니다.
+Claude Code의 답변을 바로 행동할 수 있는 모양으로 바꾸는 플러그인입니다. 첫 줄에 할 일을 쓰고 단계에 번호를 매기며 AI 특유의 표현 대신 회사에서 쓰는 쉬운 말로 씁니다. 기본 어투는 회사 보고서의 보고체(회사어투)입니다.
 
-[i-have-adhd](https://github.com/ayghri/i-have-adhd)의 답변 규칙, [im-not-ai](https://github.com/epoko77-ai/im-not-ai)의 한국어 문체 규칙, [K-Humanizer](https://github.com/evergreentree97/K-Humanizer)의 윤문·번역 판단 기준을 합쳤습니다. 누가 무엇을 했는지와 요점이 바로 보이도록 [Zonder Labs](https://zonderlabs.com/slop)의 명확성 기준(행위자 숨김, 모호한 표현, 내용 없는 문장)도 반영했습니다.
+ADHD가 있는 독자를 기준으로 만들었고 요점부터 듣고 싶은 사람이면 누구나 쓸 수 있습니다. 기본 언어는 영어입니다. 한국어는 번역투 없는 한국어와 국내 회사 보고서 문체를 담은 별도 규칙으로 씁니다.
 
 ## 설치
 
@@ -13,14 +13,14 @@ Claude Code의 한국어 답변을 바로 행동할 수 있는 모양으로 바�
 1. Claude Code 세션 안에서 플러그인을 설치합니다.
 
    ```
-   /plugin marketplace add evelynn/Korean-Adhd
-   /plugin install korean-adhd@korean-adhd
+   /plugin marketplace add evelynn/get-to-it
+   /plugin install get-to-it@get-to-it
    ```
 
 2. 새 세션을 열고(`/exit` 후 `claude`) 규칙을 켭니다.
 
    ```
-   /korean-adhd:korean-adhd
+   /get-to-it:get-to-it
    ```
 
 3. 오류 해결 방법을 묻습니다. 첫 줄이 할 일이면 켜졌습니다.
@@ -29,33 +29,40 @@ Claude Code의 한국어 답변을 바로 행동할 수 있는 모양으로 바�
 
 ```bash
 # macOS, Linux, Git Bash
-touch ~/.claude/.korean-adhd-always
+touch ~/.claude/.get-to-it-always
 ```
 
 ```powershell
 # PowerShell
-New-Item -ItemType File "$HOME\.claude\.korean-adhd-always"
+New-Item -ItemType File "$HOME\.claude\.get-to-it-always"
 ```
 
 i-have-adhd를 쓰고 있었다면 터미널에서 `claude plugin disable i-have-adhd@i-have-adhd`로 끕니다. 함께 켜도 Claude는 이 플러그인의 규칙을 따르지만 비슷한 규칙이 두 번 들어갑니다.
 
-## 어투 설정
+## 언어와 어투
 
-답변 어투는 회사어투(기본)와 일반어투 중에서 고릅니다. 회사어투는 채팅 답변과 업무 보고서를 회사 보고서의 보고체로 줄이되 단어는 회사에서 실제로 쓰는 쉬운 말로 쓰고 일반어투는 "~합니다"로 씁니다. 회사어투에서 보고서 양식으로 쓰는 글은 국내 회사에서 실제로 쓰는 개조식 보고서 문체로 쓰고 번역투를 쓰지 않습니다. 회사어투 규칙은 [`references/company-tone.md`](skills/korean-adhd/references/company-tone.md)에 있습니다.
+| 설정 | 선택지 | 기본값 | 설정 파일 |
+| --- | --- | --- | --- |
+| 언어 | 영어, 한국어 | 영어 | `~/.claude/.get-to-it-lang` |
+| 어투 | 회사어투, 일반어투 | 회사어투 | `~/.claude/.get-to-it-tone` |
+
+한국어로 쓰려면 언어를 설정해야 합니다. 설정 파일에 `ko`를 쓰거나 세션 중에 "한국어 모드"라고 말합니다. 회사어투는 채팅 답변과 업무 보고서를 회사 보고서의 보고체로 줄이되 단어는 회사에서 실제로 쓰는 쉬운 말로 쓰고 일반어투는 "~합니다"로 씁니다. 회사어투에서 보고서 양식으로 쓰는 글은 국내 회사에서 실제로 쓰는 개조식 보고서 문체로 쓰고 번역투를 쓰지 않습니다. 한국어 규칙은 [`references/ko/`](skills/get-to-it/references/ko) 폴더에 있습니다.
 
 바꾸는 방법은 두 가지입니다.
 
-1. 지금 세션에서만 바꾸려면 "일반어투로" 또는 "회사어투로"라고 말합니다.
-2. 새 세션마다 적용하려면 설정 파일 `~/.claude/.korean-adhd-tone`에 `plain`(일반어투)이나 `company`(회사어투)를 씁니다. 파일이 없으면 회사어투입니다. `.korean-adhd-always` 파일이 함께 있어야 동작합니다.
+1. 지금 세션에서만 바꾸려면 언어는 "한국어 모드"나 "영어 모드", 어투는 "일반어투로"나 "회사어투로"라고 말합니다.
+2. 새 세션마다 적용하려면 언어 파일에 `ko`를, 어투 파일에 `plain`(일반어투)을 씁니다. 파일이 없으면 영어와 회사어투입니다. `.get-to-it-always` 파일이 함께 있어야 동작합니다.
 
    ```bash
    # macOS, Linux, Git Bash
-   echo plain > ~/.claude/.korean-adhd-tone
+   echo ko > ~/.claude/.get-to-it-lang
+   echo plain > ~/.claude/.get-to-it-tone
    ```
 
    ```powershell
    # PowerShell
-   Set-Content "$HOME\.claude\.korean-adhd-tone" plain
+   Set-Content "$HOME\.claude\.get-to-it-lang" ko
+   Set-Content "$HOME\.claude\.get-to-it-tone" plain
    ```
 
 ### 달라지는 문장
@@ -91,7 +98,7 @@ i-have-adhd를 쓰고 있었다면 터미널에서 `claude plugin disable i-have
 
 ## 적용 예시
 
-아래 예시는 규칙을 설명하려고 직접 쓴 글이고 회사어투를 끈 일반어투로 썼습니다. 실제 답변은 모델과 대화 내용에 따라 달라집니다.
+아래 예시는 규칙을 설명하려고 직접 쓴 글이고 한국어 설정에서 회사어투를 끈 일반어투로 썼습니다. 실제 답변은 모델과 대화 내용에 따라 달라집니다.
 
 ### 예시 1. 오류를 고칠 때
 
@@ -153,16 +160,18 @@ i-have-adhd를 쓰고 있었다면 터미널에서 `claude plugin disable i-have
 
 | 하려는 일 | 방법 |
 | --- | --- |
-| 이 세션에서만 켜기 | `/korean-adhd:korean-adhd` 입력 |
-| 이 세션에서 끄기 | "ADHD 모드 꺼", "normal mode", "stop adhd mode" 중 하나를 말하기 |
-| 새 세션마다 켜기 | `~/.claude/.korean-adhd-always` 파일 만들기 |
+| 이 세션에서만 켜기 | `/get-to-it:get-to-it` 입력 |
+| 이 세션에서 끄기 | "get-to-it 꺼", "normal mode", "stop get-to-it" 중 하나를 말하기 |
+| 새 세션마다 켜기 | `~/.claude/.get-to-it-always` 파일 만들기 |
 | 새 세션마다 켜기 해제 | 위 파일 지우기 |
+| 이 세션에서 언어 바꾸기 | "한국어 모드", "영어 모드"라고 말하기 |
+| 새 세션마다 한국어 쓰기 | `~/.claude/.get-to-it-lang`에 `ko` 쓰기 |
 | 이 세션에서 어투 바꾸기 | "일반어투로", "회사어투로"라고 말하기 |
-| 새 세션마다 어투 정하기 | `~/.claude/.korean-adhd-tone`에 `plain` 또는 `company` 쓰기 |
-| 기본 어투(회사어투)로 돌아가기 | 위 파일 지우기 |
+| 새 세션마다 어투 정하기 | `~/.claude/.get-to-it-tone`에 `plain` 또는 `company` 쓰기 |
+| 기본값(영어·회사어투)으로 돌아가기 | 설정 파일 지우기 |
 
-어투 설정 파일은 `.korean-adhd-always` 파일이 함께 있어야 동작합니다. 항상 켜기 파일이 있으면 세션 중에 껐더라도 대화 압축이나 `/clear` 뒤에 규칙이 다시 들어갑니다.
+설정 파일은 `.get-to-it-always` 파일이 함께 있어야 동작합니다. 항상 켜기 파일이 있으면 세션 중에 껐더라도 대화 압축이나 `/clear` 뒤에 규칙이 다시 들어갑니다.
 
 ## 라이선스
 
-MIT. 세 원작의 저작권 표시는 [`LICENSE`](LICENSE)에 함께 실었습니다.
+MIT. [`LICENSE`](LICENSE)를 참고하세요.

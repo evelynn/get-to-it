@@ -1,14 +1,14 @@
 {
   "$schema": "https://www.schemastore.org/claude-code-marketplace.json",
-  "name": "korean-adhd",
-  "description": "ADHD 친화 답변 모양과 자연스러운 한국어를 합친 플러그인.",
+  "name": "get-to-it",
+  "description": "Action-first replies in plain words and short company tone. English by default, Korean included.",
   "owner": {
     "name": "Evelyn"
   },
   "plugins": [
     {
-      "name": "korean-adhd",
-      "description": "행동 먼저, 번호 단계, 번역투와 AI 특유의 표현이 없는 한국어 답변.",
+      "name": "get-to-it",
+      "description": "First line is the next step, numbered steps, no AI filler, company tone by default. English and Korean.",
       "source": "./",
       "category": "productivity"
     }

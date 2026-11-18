@@ -8,84 +8,173 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const hook = path.join(root, "hooks", "always-on.mjs");
-const skillPath = path.join(root, "skills", "korean-adhd", "SKILL.md");
-const companyPath = path.join(root, "skills", "korean-adhd", "references", "company-tone.md");
-const readmePath = path.join(root, "README.md"); // 메인 = 회사어투
-const defaultReadmePath = path.join(root, "README.default.md");
+const skillDir = path.join(root, "skills", "get-to-it");
+const enSkillPath = path.join(skillDir, "SKILL.md"); // 영어 규칙(기본)
+const enCompanyPath = path.join(skillDir, "references", "company-tone.md");
+const writingPath = path.join(skillDir, "references", "writing.md");
+const skillPath = path.join(skillDir, "references", "ko", "rules.md"); // 한국어 규칙
+const companyPath = path.join(skillDir, "references", "ko", "company-tone.md");
+const koRulesPath = path.join(skillDir, "references", "ko", "korean-rules.md");
+const enReadmePath = path.join(root, "README.md"); // 메인 = 영어
+const readmePath = path.join(root, "README.ko.md"); // 한국어 회사어투
+const defaultReadmePath = path.join(root, "README.ko-plain.md");
+const readmes = [enReadmePath, readmePath, defaultReadmePath];
 const COMPANY_HEAD = "## 회사어투 옵션";
-const MAX_INJECTED_CHARS = 10000; // Claude Code 훅 출력 주입 한도
+const EN_COMPANY_HEAD = "## Company tone";
+// Claude Code 훅 출력 주입 한도 10000자. 설치 경로가 저장소 경로보다 길어지는 만큼 300자를 남긴다.
+const MAX_INJECTED_CHARS = 10000 - 300;
+const ALWAYS = ".get-to-it-always";
+const LANG = ".get-to-it-lang";
+const TONE = ".get-to-it-tone";
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "korean-adhd-"));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "get-to-it-"));
 const runHook = (file, configDir) =>
   spawnSync(process.execPath, [file], {
     encoding: "utf8",
     env: { ...process.env, CLAUDE_CONFIG_DIR: configDir },
   });
+// 설정 파일을 만든 설정 폴더에서 훅을 돌린다. 값이 null 이면 그 파일을 만들지 않는다.
+const inject = ({ always = true, lang = null, tone = null } = {}) => {
+  const dir = fs.mkdtempSync(path.join(tmp, "cfg-"));
+  if (always) fs.writeFileSync(path.join(dir, ALWAYS), "");
+  if (lang !== null) fs.writeFileSync(path.join(dir, LANG), lang);
+  if (tone !== null) fs.writeFileSync(path.join(dir, TONE), tone);
+  return runHook(hook, dir);
+};
 const readJson = (rel) => JSON.parse(fs.readFileSync(path.join(root, rel), "utf8"));
+const read = (f) => fs.readFileSync(f, "utf8");
+const trackedFiles = () =>
+  spawnSync("git", ["ls-files"], { cwd: root, encoding: "utf8" }).stdout.split(/\r?\n/).filter((f) => f && fs.existsSync(path.join(root, f)));
+const refPaths = (stdout) => [...stdout.matchAll(/`([^`\n]+)`/g)].map((m) => m[1]).filter((s) => s.includes("/references/") && s.endsWith(".md"));
+const commands = (t) =>
+  [...new Set(t.split(/\r?\n/).map((l) => l.trim()).filter((l) => /^(\/plugin|\/get-to-it|claude plugin|node tests|touch|rm -f|New-Item|Remove-Item|echo|Set-Content)/.test(l)))].sort();
+const COMMA_AFTER_CONNECTIVE = /(하고|했고|되고|이고|않고|남기고|맞추고|녹이고|줄이고|빼고|넣고|하며|지만|면서|아서|어서|해서),\s/;
+const utf16 = (s) => Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from(s, "utf16le")]);
 
 const tests = {
   "플래그가 없으면 아무것도 주입하지 않는다"() {
-    const dir = fs.mkdtempSync(path.join(tmp, "off-"));
-    const r = runHook(hook, dir);
-    assert.equal(r.status, 0);
-    assert.equal(r.stdout, "");
+    for (const opts of [{ always: false }, { always: false, lang: "ko", tone: "plain" }]) {
+      const r = inject(opts);
+      assert.equal(r.status, 0);
+      assert.equal(r.stdout, "");
+    }
   },
-  "플래그가 있으면 머리말 없이 규칙 전문을 주입한다"() {
-    const dir = fs.mkdtempSync(path.join(tmp, "on-"));
-    fs.writeFileSync(path.join(dir, ".korean-adhd-always"), "");
-    const r = runHook(hook, dir);
-    assert.equal(r.status, 0);
-    assert.match(r.stdout, /^KOREAN-ADHD 모드 켜짐/);
-    assert.match(r.stdout, /## 보내기 전 점검/);
-    assert.doesNotMatch(r.stdout, /disable-model-invocation/);
+  "언어 설정이 없으면 머리말 없이 영어 규칙을 주입한다"() {
+    for (const lang of [null, "en\n", "모름"]) {
+      const r = inject({ lang });
+      assert.equal(r.status, 0);
+      assert.match(r.stdout, /^GET-TO-IT on \(always\)/, String(lang));
+      assert.match(r.stdout, /Language: English \(default\)/);
+      assert.match(r.stdout, /## Before you send/);
+      assert.ok(!r.stdout.includes("## 보내기 전 점검"), String(lang));
+      assert.doesNotMatch(r.stdout, /disable-model-invocation/);
+    }
   },
-  "주입문은 훅 출력 한도 안에 들어간다"() {
-    const dir = fs.mkdtempSync(path.join(tmp, "size-"));
-    fs.writeFileSync(path.join(dir, ".korean-adhd-always"), "");
-    const { stdout } = runHook(hook, dir);
-    assert.ok(stdout.length < MAX_INJECTED_CHARS, `${stdout.length}자`);
+  "언어 설정이 ko 면 한국어 규칙을 주입한다(PowerShell 5 의 UTF-16·BOM 포함)"() {
+    for (const lang of ["ko\n", "﻿KO\r\n", utf16("ko\r\n")]) {
+      const { stdout } = inject({ lang });
+      assert.match(stdout, /^GET-TO-IT 켜짐\(상시\)/, String(lang));
+      assert.match(stdout, /한국어 설정\(/);
+      assert.match(stdout, /## 보내기 전 점검/);
+      assert.ok(!stdout.includes("## Before you send"), String(lang));
+    }
+  },
+  "주입문은 언어·어투 조합마다 훅 출력 한도 안에 들어간다"() {
+    for (const lang of [null, "ko"]) {
+      for (const tone of [null, "plain"]) {
+        const { stdout } = inject({ lang, tone });
+        assert.ok(stdout.length < MAX_INJECTED_CHARS, `${lang}/${tone}: ${stdout.length}자`);
+      }
+    }
   },
   "주입문의 참조 경로는 실제 파일을 가리킨다"() {
-    const dir = fs.mkdtempSync(path.join(tmp, "ref-"));
-    fs.writeFileSync(path.join(dir, ".korean-adhd-always"), "");
-    const { stdout } = runHook(hook, dir);
-    assert.doesNotMatch(stdout, /CLAUDE_SKILL_DIR/);
-    const ref = stdout.match(/`([^`]*references\/korean-rules\.md)`/);
-    assert.ok(ref, "참조 경로 없음");
-    assert.ok(fs.existsSync(ref[1]), ref[1]);
+    for (const [lang, want] of [
+      [null, ["references/ko/rules.md", "references/writing.md", "references/company-tone.md"]],
+      ["ko", ["references/ko/korean-rules.md", "references/ko/company-tone.md"]],
+    ]) {
+      const { stdout } = inject({ lang });
+      assert.doesNotMatch(stdout, /\$\{CLAUDE_SKILL_DIR\}/);
+      const refs = refPaths(stdout);
+      for (const w of want) assert.ok(refs.some((r) => r.endsWith(w)), `${lang}: ${w}`);
+      for (const r of refs) assert.ok(fs.existsSync(r), r);
+    }
   },
-  "어투 설정이 없거나 company 면 회사어투 장을 맨 끝에 주입하고 한도 안에 들어간다"() {
-    for (const value of [null, "company\n", "모름"]) {
-      const dir = fs.mkdtempSync(path.join(tmp, "tone-company-"));
-      fs.writeFileSync(path.join(dir, ".korean-adhd-always"), "");
-      if (value !== null) fs.writeFileSync(path.join(dir, ".korean-adhd-tone"), value);
-      const { stdout } = runHook(hook, dir);
-      assert.match(stdout, /회사어투 설정\(기본\)/, String(value));
-      assert.ok(stdout.indexOf(COMPANY_HEAD) > stdout.indexOf("## 보내기 전 점검"), String(value));
-      assert.ok(stdout.length < MAX_INJECTED_CHARS, `${stdout.length}자`);
+  "어투 설정이 없거나 company 면 회사어투 장을 맨 끝에 주입한다"() {
+    for (const tone of [null, "company\n", "모름"]) {
+      const en = inject({ tone }).stdout;
+      assert.match(en, /Company tone \(default\)/, String(tone));
+      assert.ok(en.search(/^## Company tone$/m) > en.indexOf("## Before you send"), String(tone));
+      const ko = inject({ lang: "ko", tone }).stdout;
+      assert.match(ko, /회사어투 설정\(기본\)/, String(tone));
+      assert.ok(ko.indexOf(COMPANY_HEAD) > ko.indexOf("## 보내기 전 점검"), String(tone));
     }
   },
   "어투 설정이 plain 이면 회사어투 장을 주입하지 않는다(PowerShell 5 의 UTF-16·BOM 포함)"() {
-    const utf16 = Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from("plain\r\n", "utf16le")]);
-    for (const value of ["plain\n", "﻿Plain\r\n", utf16]) {
-      const dir = fs.mkdtempSync(path.join(tmp, "tone-plain-"));
-      fs.writeFileSync(path.join(dir, ".korean-adhd-always"), "");
-      fs.writeFileSync(path.join(dir, ".korean-adhd-tone"), value);
-      const { stdout } = runHook(hook, dir);
-      assert.ok(!stdout.includes(COMPANY_HEAD), String(value));
-      assert.match(stdout, /일반어투 설정\(/);
-      assert.match(stdout, /## 보내기 전 점검/);
+    for (const tone of ["plain\n", "﻿Plain\r\n", utf16("plain\r\n")]) {
+      const en = inject({ tone }).stdout;
+      assert.doesNotMatch(en, /^## Company tone$/m, String(tone));
+      assert.match(en, /Plain tone is set \(/);
+      assert.match(en, /## Before you send/);
+      const ko = inject({ lang: "ko", tone }).stdout;
+      assert.ok(!ko.includes(COMPANY_HEAD), String(tone));
+      assert.match(ko, /일반어투 설정\(/);
+      assert.match(ko, /## 보내기 전 점검/);
     }
   },
-  "어투 설정 파일만 있고 상시 플래그가 없으면 아무것도 주입하지 않는다"() {
-    const dir = fs.mkdtempSync(path.join(tmp, "tone-only-"));
-    fs.writeFileSync(path.join(dir, ".korean-adhd-tone"), "plain");
-    const r = runHook(hook, dir);
-    assert.equal(r.status, 0);
-    assert.equal(r.stdout, "");
+  "규칙 파일이 없어도 세션 시작을 막지 않는다"() {
+    const plugin = fs.mkdtempSync(path.join(tmp, "broken-"));
+    fs.mkdirSync(path.join(plugin, "hooks"));
+    const copy = path.join(plugin, "hooks", "always-on.mjs");
+    fs.copyFileSync(hook, copy);
+    for (const lang of [null, "ko"]) {
+      const dir = fs.mkdtempSync(path.join(tmp, "cfg-"));
+      fs.writeFileSync(path.join(dir, ALWAYS), "");
+      if (lang) fs.writeFileSync(path.join(dir, LANG), lang);
+      const r = runHook(copy, dir);
+      assert.equal(r.status, 0);
+      assert.equal(r.stdout, "");
+    }
+  },
+  "영어 규칙이 언어·어투 전환과 한국어 규칙 파일을 안내한다"() {
+    const rule = read(enSkillPath);
+    for (const say of ['"Korean mode"', '"한국어 모드"', '"plain tone"', '"company tone"', '"normal mode"', '"stop get-to-it"']) assert.ok(rule.includes(say), say);
+    assert.match(rule, /English is the default/);
+    assert.match(rule, /`\$\{CLAUDE_SKILL_DIR\}\/references\/ko\/rules\.md`/);
+    // 한국어 규칙 파일 안의 ${CLAUDE_SKILL_DIR} 을 읽는 법을 알려 준다(슬래시 명령으로 켰을 때)
+    assert.match(rule, /the placeholder CLAUDE_SKILL_DIR means `\$\{CLAUDE_SKILL_DIR\}`/);
+    for (const head of ["## 1. Reply shape", "## 2. Plain words", "## 3. Tone", "### Company tone", "### Plain tone", "## 4. When to break the rules", "## Before you send"]) {
+      assert.ok(rule.includes(head), head);
+    }
+    assert.match(rule, /Write a "Next:" line only when the user has something to do/);
+    assert.match(rule, /Never invent one/);
+    assert.match(rule, /Keep words that link cause, contrast and order/);
+    assert.match(rule, /qualifiers like "only", "at most" and "about"/);
+    assert.match(read(writingPath), /Return natural text as it is/);
+    assert.match(read(writingPath), /Lead with the text to paste/);
+  },
+  "한국어 규칙이 영어 전환과 어투 전환을 안내한다"() {
+    const { stdout } = inject({ lang: "ko" });
+    for (const say of ['"English mode"', '"영어 모드"', '"회사어투 켜"', '"회사어투 꺼"', '"일반어투로"', '"회사어투로"', '"get-to-it 꺼"']) assert.ok(stdout.includes(say), say);
+    assert.match(stdout, /회사어투\(기본\)와 일반어투 중 하나/);
+    const en = [...stdout.matchAll(/`([^`\n]+)`/g)].map((m) => m[1]).find((s) => s.endsWith("/SKILL.md"));
+    assert.ok(en, "영어 규칙 경로 없음");
+    assert.ok(fs.existsSync(en), en);
+  },
+  "영어 회사어투 규칙은 상태 문구·표 정리·상태 구분을 명시하고 고친 쪽은 대화체가 아니다"() {
+    const rule = read(enCompanyPath);
+    assert.ok(rule.startsWith(EN_COMPANY_HEAD + "\n"));
+    assert.match(rule, /"X done", "X needed", "X scheduled", "X requested"/);
+    assert.match(rule, /Comparisons in tables/);
+    assert.match(rule, /Keep done, in progress and under review apart/);
+    assert.match(rule, /never mark unverified work "done"/);
+    assert.match(rule, /"Reason:" holds only confirmed causes/);
+    assert.match(rule, /Words stay the plain ones people use at work/);
+    const rows = rule.split(/\r?\n/).filter((l) => /^\| /.test(l)).slice(1);
+    assert.ok(rows.length >= 5);
+    for (const row of rows) assert.doesNotMatch(row.split("|")[2].trim(), /^(I|We|You|Could|Should|Would)\b|[.?]$/, row);
   },
   "회사어투 규칙은 금지 어미·표 정리·상태 구분·2·3장 우선을 명시한다"() {
-    const rule = fs.readFileSync(companyPath, "utf8");
+    const rule = read(companyPath);
     assert.match(rule, /"~입니다", "~습니다", "~합니다", "~한다", "~할 수 있습니다"/);
     assert.match(rule, /"~함".*"~완료".*"~적용".*"~확인 필요"/);
     assert.match(rule, /항목별 비교는 표로 정리/);
@@ -100,63 +189,53 @@ const tests = {
     assert.match(rule, /사용자의 반말·존댓말과 무관하게 보고체 유지/);
     assert.match(rule, /커밋 메시지, 코드 주석은 저장소 관례 유지/);
     assert.match(rule, /단어는 회사에서 실제로 쓰는 쉬운 말 사용/);
-    const skill = fs.readFileSync(skillPath, "utf8");
+    const skill = read(skillPath);
     assert.match(skill, /\*\*명확하게 쓴다\.\*\*/);
     assert.match(skill, /누가 무엇을 했는지와 요점이 보이는지 확인한다/);
     assert.match(rule, /명사 4개 이상 연속 금지/);
   },
   "회사어투 예시의 고친 쪽은 금지한 어미로 끝나지 않는다"() {
-    const rows = fs.readFileSync(companyPath, "utf8").split(/\r?\n/).filter((l) => /^\| /.test(l)).slice(1);
+    const rows = read(companyPath).split(/\r?\n/).filter((l) => /^\| /.test(l)).slice(1);
     assert.ok(rows.length >= 5);
     for (const row of rows) assert.doesNotMatch(row.split("|")[2].trim(), /(입니다|습니다|합니다|한다|해요|까요\?)$/, row);
-  },
-  "SKILL.md 가 회사어투 켜는 말과 규칙 파일을 안내한다"() {
-    const dir = fs.mkdtempSync(path.join(tmp, "company-ref-"));
-    fs.writeFileSync(path.join(dir, ".korean-adhd-always"), "");
-    const { stdout } = runHook(hook, dir);
-    for (const say of ['"회사어투 켜"', '"회사어투 꺼"', '"일반어투로"', '"회사어투로"']) assert.ok(stdout.includes(say), say);
-    assert.match(stdout, /회사어투\(기본\)와 일반어투 중 하나/);
-    const ref = stdout.match(/`([^`]*references\/company-tone\.md)`/);
-    assert.ok(ref, "참조 경로 없음");
-    assert.ok(fs.existsSync(ref[1]), ref[1]);
-  },
-  "SKILL.md 가 없어도 세션 시작을 막지 않는다"() {
-    const plugin = fs.mkdtempSync(path.join(tmp, "broken-"));
-    fs.mkdirSync(path.join(plugin, "hooks"));
-    const copy = path.join(plugin, "hooks", "always-on.mjs");
-    fs.copyFileSync(hook, copy);
-    const dir = fs.mkdtempSync(path.join(tmp, "cfg-"));
-    fs.writeFileSync(path.join(dir, ".korean-adhd-always"), "");
-    const r = runHook(copy, dir);
-    assert.equal(r.status, 0);
-    assert.equal(r.stdout, "");
   },
   "매니페스트와 스킬 이름이 일치하고 마켓플레이스 규칙을 지킨다"() {
     const plugin = readJson(".claude-plugin/plugin.json");
     const market = readJson(".claude-plugin/marketplace.json");
+    assert.equal(plugin.name, "get-to-it");
     assert.match(plugin.name, /^[a-z0-9]+(-[a-z0-9]+)*$/);
     assert.equal(market.name, plugin.name);
     assert.equal(market.plugins[0].name, plugin.name);
-    const frontmatter = fs.readFileSync(skillPath, "utf8").split("---")[1];
+    assert.equal(plugin.repository, "https://github.com/evelynn/get-to-it");
+    const frontmatter = read(enSkillPath).split("---")[1];
     assert.match(frontmatter, new RegExp(`^name: ${plugin.name}$`, "m"));
+    // 한국어 규칙은 스킬로 따로 잡히지 않도록 머리말이 없다
+    assert.ok(!read(skillPath).startsWith("---"));
   },
-  "규칙 문서가 스스로 연결어미 뒤 쉼표를 쓰지 않는다"() {
-    const rulesPath = path.join(root, "skills", "korean-adhd", "references", "korean-rules.md");
-    const lines = [skillPath, companyPath, rulesPath].flatMap((f) => fs.readFileSync(f, "utf8").split(/\r?\n/));
-    const hits = lines.filter(
-      (l) => /(하고|했고|되고|이고|않고|남기고|맞추고|녹이고|줄이고|빼고|넣고|하며|지만|면서|아서|어서|해서),\s/.test(l) && !l.includes("찍지 않는다"),
-    );
+  "SKILL.md 설명이 플러그인 스킬 호출명을 쓴다"() {
+    const frontmatter = read(enSkillPath).split("---")[1];
+    assert.match(frontmatter, /\/get-to-it:get-to-it/);
+    assert.doesNotMatch(frontmatter, /\/get-to-it(?!:)/);
+  },
+  "옛 이름(korean-adhd)이 공개 파일에 남지 않는다"() {
+    for (const file of trackedFiles().filter((f) => !f.startsWith("tests/"))) {
+      assert.doesNotMatch(read(path.join(root, file)), /korean-adhd|Korean-Adhd|KOREAN-ADHD/, file);
+    }
+  },
+  "한국어 규칙 문서가 스스로 연결어미 뒤 쉼표를 쓰지 않는다"() {
+    const lines = [skillPath, companyPath, koRulesPath].flatMap((f) => read(f).split(/\r?\n/));
+    const hits = lines.filter((l) => COMMA_AFTER_CONNECTIVE.test(l) && !l.includes("찍지 않는다"));
     assert.deepEqual(hits, []);
   },
   "세 원작의 MIT 저작권 표시를 유지한다"() {
-    const license = fs.readFileSync(path.join(root, "LICENSE"), "utf8");
+    const license = read(path.join(root, "LICENSE"));
     assert.match(license, /Ayoub Ghriss/);
     assert.match(license, /epoko77-ai/);
     assert.match(license, /Copyright \(c\) 2026 K-Humanizer contributors/);
     assert.match(license, /github\.com\/evergreentree97\/K-Humanizer/);
   },
   "윤문 규칙이 고칠 이유·자연스러운 글 유지·결과 반환·연결 보존을 명시한다"() {
-    const rule = fs.readFileSync(skillPath, "utf8");
+    const rule = read(skillPath);
     assert.match(rule, /윤문은 다섯 가지를 지킨다/);
     assert.match(rule, /고칠 이유를 댈 수 있는 곳만 고친다/);
     assert.match(rule, /이미 자연스러운 글은 그대로 돌려준다/);
@@ -166,7 +245,7 @@ const tests = {
     assert.match(rule, /영어를 한국어로 옮기거나 번역을 원문과 대조/);
   },
   "어체별 규칙이 공통·일반어투·회사어투로 나뉜다"() {
-    const rule = fs.readFileSync(skillPath, "utf8");
+    const rule = read(skillPath);
     const at = (s) => {
       const i = rule.indexOf(s);
       assert.ok(i >= 0, s);
@@ -197,7 +276,7 @@ const tests = {
     assert.doesNotMatch(rule, /두 규칙이 부딪힐 때/);
   },
   "긴 글 규칙이 번역·읽는 사람 기준·연결 관계를 담고 출처를 밝힌다"() {
-    const rules = fs.readFileSync(path.join(root, "skills", "korean-adhd", "references", "korean-rules.md"), "utf8");
+    const rules = read(koRulesPath);
     assert.match(rules, /\[K-Humanizer\]\(https:\/\/github\.com\/evergreentree97\/K-Humanizer\)/);
     assert.match(rules, /커밋 `c24b2c5`/);
     // 회사어투 보고서와 부딪히는 산문 리듬 규칙은 회사어투로 넘긴다
@@ -215,8 +294,8 @@ const tests = {
     assert.ok(checks.length >= 10);
   },
   "회사어투 보고서 양식 글은 N절(회사 보고서)을 따르고 고친 쪽은 명사형으로 끝난다"() {
-    const rules = fs.readFileSync(path.join(root, "skills", "korean-adhd", "references", "korean-rules.md"), "utf8");
-    const company = fs.readFileSync(companyPath, "utf8");
+    const rules = read(koRulesPath);
+    const company = read(companyPath);
     assert.match(company, /`korean-rules\.md` N절\(회사 보고서\) 추가 적용/);
     assert.match(company, /영어 보고서식 표현·번역투 금지/);
     const n = rules.split("## N. 회사 보고서 (회사어투)")[1]?.split(/^## /m)[0] ?? "";
@@ -232,67 +311,51 @@ const tests = {
       assert.doesNotMatch(fixed, /에 대한|을 통해|를 통해|에 의해|에 있어서|우리는/, row);
     }
   },
-  "SKILL.md 설명이 플러그인 스킬 호출명을 쓴다"() {
-    const frontmatter = fs.readFileSync(skillPath, "utf8").split("---")[1];
-    assert.match(frontmatter, /\/korean-adhd:korean-adhd/);
-    assert.doesNotMatch(frontmatter, /\/korean-adhd(?!:)/);
-  },
-  "README 는 소개·설치·어투 설정·예시·켜고 끄기·라이선스만 둔다"() {
-    const readme = fs.readFileSync(readmePath, "utf8");
-    const heads = [...readme.matchAll(/^## (.+)$/gm)].map((m) => m[1]);
-    assert.deepEqual(heads, ["설치", "어투 설정", "적용 예시", "켜기와 끄기", "라이선스"]);
-    // 어투는 설정 파일 하나로 고르고 옛 회사어투 플래그는 안내하지 않는다
-    for (const f of [readmePath, defaultReadmePath, path.join(root, "README.en.md")]) {
-      const t = fs.readFileSync(f, "utf8");
-      assert.match(t, /\.korean-adhd-tone/, f);
-      assert.doesNotMatch(t, /\.korean-adhd-(company|plain)/, f);
-    }
-    assert.match(readme, /\/plugin marketplace add evelynn\/Korean-Adhd/);
-    assert.match(readme, /\/korean-adhd:korean-adhd/);
-    assert.match(readme, /github\.com\/ayghri\/i-have-adhd/);
-    assert.match(readme, /github\.com\/epoko77-ai\/im-not-ai/);
-    for (const f of [readmePath, defaultReadmePath, path.join(root, "README.en.md")]) {
-      assert.match(fs.readFileSync(f, "utf8"), /github\.com\/evergreentree97\/K-Humanizer/, f);
+  "README 는 소개·설치·언어와 어투·예시·켜고 끄기·라이선스만 둔다"() {
+    const heads = (f) => [...read(f).matchAll(/^## (.+)$/gm)].map((m) => m[1]);
+    assert.deepEqual(heads(enReadmePath), ["Install", "Language and tone", "Examples", "Turning it on and off", "License"]);
+    assert.deepEqual(heads(readmePath), ["설치", "언어와 어투", "적용 예시", "켜기와 끄기", "라이선스"]);
+    for (const f of readmes) {
+      const t = read(f);
+      assert.match(t, /^# get-to-it$/m, f);
+      assert.match(t, /\/plugin marketplace add evelynn\/get-to-it/, f);
+      assert.match(t, /\/get-to-it:get-to-it/, f);
+      assert.match(t, /\.get-to-it-lang/, f);
+      assert.match(t, /\.get-to-it-tone/, f);
+      // 원작 참조는 LICENSE 에만 둔다
+      assert.doesNotMatch(t, /im-not-ai|K-Humanizer|Zonder|zonderlabs|github\.com\/ayghri/, f);
     }
   },
-  "한국어·영어 README 가 서로 연결되고 절 수와 명령이 같다"() {
-    const ko = fs.readFileSync(readmePath, "utf8");
-    const en = fs.readFileSync(path.join(root, "README.en.md"), "utf8");
-    assert.match(ko, /\[English\]\(README\.en\.md\)/);
-    assert.match(en, /\[한국어 회사어투\]\(README\.md\)/);
-    const heads = (t) => [...t.matchAll(/^##+ /gm)].length;
-    assert.equal(heads(en), heads(ko));
-    const commands = (t) =>
-      [...new Set(t.split(/\r?\n/).map((l) => l.trim()).filter((l) => /^(\/plugin|\/korean-adhd|claude plugin|node tests|touch|rm -f|New-Item|Remove-Item|echo|Set-Content)/.test(l)))].sort();
+  "세 README 가 서로 연결되고 제목 수와 명령이 같다"() {
+    const [en, ko, plain] = readmes.map(read);
+    assert.match(plain, /\[English\]\(README\.md\)/);
+    assert.match(ko, /\[English\]\(README\.md\)/);
+    assert.match(ko, /\(README\.ko-plain\.md\)/);
+    assert.match(plain, /\(README\.ko\.md\)/);
+    assert.match(en, /\(README\.ko\.md\)/);
+    assert.match(en, /\(README\.ko-plain\.md\)/);
+    const count = (t) => [...t.matchAll(/^##+ /gm)].length;
+    assert.equal(count(en), count(ko));
+    const heads = (t) => [...t.matchAll(/^##+ (.+)$/gm)].map((m) => m[1]);
+    assert.deepEqual(heads(plain), heads(ko));
     assert.deepEqual(commands(en), commands(ko));
+    assert.deepEqual(commands(plain), commands(ko));
     for (const anchor of en.matchAll(/\]\(#([^)]+)\)/g)) {
       assert.ok(new RegExp("^##+ " + anchor[1].replaceAll("-", " ") + "$", "im").test(en), anchor[1]);
     }
   },
-  "README 가 연결어미 뒤 쉼표를 쓰지 않는다"() {
-    const hits = [readmePath, defaultReadmePath]
-      .flatMap((f) => fs.readFileSync(f, "utf8").split(/\r?\n/))
-      .filter((l) => /(하고|했고|되고|이고|않고|남기고|맞추고|녹이고|줄이고|빼고|넣고|하며|지만|면서|아서|어서|해서),\s/.test(l));
-    assert.deepEqual(hits, []);
+  "README 의 규칙 파일 링크가 실제 경로를 가리킨다"() {
+    for (const f of readmes) {
+      for (const m of read(f).matchAll(/\]\(((?:skills|LICENSE)[^)#]*)\)/g)) assert.ok(fs.existsSync(path.join(root, m[1])), `${f}: ${m[1]}`);
+    }
   },
-  "회사어투 메인 README 가 기본어투 README 와 연결되고 제목과 명령이 같다"() {
-    const main = fs.readFileSync(readmePath, "utf8");
-    const en = fs.readFileSync(path.join(root, "README.en.md"), "utf8");
-    const plain = fs.readFileSync(defaultReadmePath, "utf8");
-    assert.match(main, /\(README\.default\.md\)/);
-    assert.match(en, /\(README\.default\.md\)/);
-    assert.match(plain, /\(README\.md\)/);
-    assert.match(plain, /\(README\.en\.md\)/);
-    const heads = (t) => [...t.matchAll(/^##+ (.+)$/gm)].map((m) => m[1]);
-    assert.deepEqual(heads(plain), heads(main));
-    const commands = (t) =>
-      [...new Set(t.split(/\r?\n/).map((l) => l.trim()).filter((l) => /^(\/plugin|\/korean-adhd|claude plugin|node tests|touch|rm -f|New-Item|Remove-Item|echo|Set-Content)/.test(l)))].sort();
-    assert.deepEqual(commands(plain), commands(main));
+  "한국어 README 가 연결어미 뒤 쉼표를 쓰지 않는다"() {
+    const hits = [readmePath, defaultReadmePath].flatMap((f) => read(f).split(/\r?\n/)).filter((l) => COMMA_AFTER_CONNECTIVE.test(l));
+    assert.deepEqual(hits, []);
   },
   "회사어투 README 는 예시까지 금지 어미를 쓰지 않는다"() {
     // 비교 기준인 "이전:"·"일반어투:" 인용과 표의 왼쪽 칸만 제외
-    const body = fs
-      .readFileSync(readmePath, "utf8")
+    const body = read(readmePath)
       .replace(/```[\s\S]*?```/g, "")
       .replace(/(이전|일반어투):(\r?\n)+(>.*(\r?\n))+/g, "");
     const hits = body
@@ -302,36 +365,28 @@ const tests = {
     assert.deepEqual(hits, []);
   },
   "영어 README 는 예시까지 영어로 쓴다"() {
-    // 언어 전환 링크와 사용자가 그대로 입력·확인하는 문구만 한글 허용
-    const rest = fs
-      .readFileSync(path.join(root, "README.en.md"), "utf8")
-      .replace("[한국어 회사어투](README.md) | [한국어 기본어투](README.default.md)", "")
-      .replaceAll("`다음:`", "")
-      .replaceAll('"회사어투 켜"', "")
-      .replaceAll('"회사어투 꺼"', "")
-      .replaceAll('"일반어투로"', "")
-      .replaceAll('"회사어투로"', "")
-      .replaceAll('"ADHD 모드 꺼"', "");
+    // 언어 전환 링크와 사용자가 그대로 입력하는 문구만 한글 허용
+    const rest = read(enReadmePath)
+      .replace("[한국어 회사어투](README.ko.md) | [한국어 일반어투](README.ko-plain.md)", "");
     const hits = rest.split(/\r?\n/).filter((l) => /[가-힣]/.test(l));
     assert.deepEqual(hits, []);
   },
   "규칙이 '다음:' 줄을 필요할 때만 쓰도록 한다"() {
-    const rule = fs.readFileSync(skillPath, "utf8");
+    const rule = read(skillPath);
     assert.match(rule, /"다음:" 줄은 사용자가 할 일이 실제로 있을 때만 쓴다/);
     assert.match(rule, /억지로 만들지 않는다/);
     assert.doesNotMatch(rule, /끝 줄의 "다음:"은 그대로 쓴다|일이 완전히 끝났을 때만 뺀다/);
   },
   "문서가 '상투구'·'AI 관용구' 대신 'AI 특유의 표현'을 쓴다"() {
-    const files = spawnSync("git", ["ls-files"], { cwd: root, encoding: "utf8" }).stdout.split(/\r?\n/).filter((f) => f && !f.startsWith("tests/"));
-    for (const file of files) {
-      assert.doesNotMatch(fs.readFileSync(path.join(root, file), "utf8"), /상투구|AI 관용구/, file);
+    for (const file of trackedFiles().filter((f) => !f.startsWith("tests/"))) {
+      assert.doesNotMatch(read(path.join(root, file)), /상투구|AI 관용구/, file);
     }
   },
   "공개되는 파일에 로컬 경로·개인 메일·사설 IP 가 없다"() {
-    const files = spawnSync("git", ["ls-files"], { cwd: root, encoding: "utf8" }).stdout.split(/\r?\n/).filter(Boolean);
+    const files = trackedFiles();
     assert.ok(files.length > 0);
     for (const file of files) {
-      const text = fs.readFileSync(path.join(root, file), "utf8");
+      const text = read(path.join(root, file));
       assert.doesNotMatch(text, /[A-Za-z]:[\\/]\w/, file);
       assert.doesNotMatch(text, /@(gmail|naver|daum|hanmail)\.(com|net)/, file);
       assert.doesNotMatch(text, /\b(10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)\b/, file);

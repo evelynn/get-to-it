@@ -1,185 +1,185 @@
-# Korean-Adhd
+# get-to-it
 
-**한국어 회사어투** | [한국어 기본어투](README.default.md) | [English](README.en.md)
+**English** | [한국어 회사어투](README.ko.md) | [한국어 일반어투](README.ko-plain.md)
 
-Claude Code 한국어 답변을 바로 행동 가능한 형태로 변경. 번역투와 AI 특유의 표현 제거.
+A Claude Code plugin that makes every reply something you can act on. The first line is the next step, steps are numbered, and AI filler gives way to the plain words people use at work. By default, replies use company tone, a short business-report style.
 
-[i-have-adhd](https://github.com/ayghri/i-have-adhd) 답변 규칙, [im-not-ai](https://github.com/epoko77-ai/im-not-ai) 한국어 문체 규칙, [K-Humanizer](https://github.com/evergreentree97/K-Humanizer) 윤문·번역 판단 기준 통합. 누가 무엇을 했는지와 요점이 바로 보이도록 [Zonder Labs](https://zonderlabs.com/slop) 명확성 기준(행위자 숨김, 모호한 표현, 내용 없는 문장) 반영.
+It is built for readers with ADHD and works for anyone who wants Claude to get to the point. English is the default. Korean has its own full rule set, including natural Korean without translated-sounding phrasing and Korean business-report style.
 
-## 설치
+## Install
 
-- 소요 시간: 약 2분
-- 필요 항목: Claude Code, Node.js
-- Node.js 없을 경우: 세션 시작마다 훅 오류 기록, 세션은 계속 진행됨
+Takes about 2 minutes. You need Claude Code and Node.js. Without Node.js, a hook error is logged at each session start, but the session continues.
 
-1. Claude Code 세션 안에서 플러그인 설치.
+1. Install the plugin inside a Claude Code session.
 
    ```
-   /plugin marketplace add evelynn/Korean-Adhd
-   /plugin install korean-adhd@korean-adhd
+   /plugin marketplace add evelynn/get-to-it
+   /plugin install get-to-it@get-to-it
    ```
 
-2. 새 세션 시작(`/exit` 후 `claude`) 후 규칙 활성화.
+2. Open a new session (`/exit`, then `claude`) and turn the rules on.
 
    ```
-   /korean-adhd:korean-adhd
+   /get-to-it:get-to-it
    ```
 
-3. 오류 해결 방법 질문. 첫 줄이 할 일이면 정상 적용.
+3. Ask how to fix an error. It is on if the first line is the action to take.
 
-새 세션마다 자동 활성화 필요 시 터미널에서 플래그 파일 생성. 다음 새 세션부터 적용.
+To turn it on in every new session, create a flag file in your terminal. It applies from the next new session.
 
 ```bash
 # macOS, Linux, Git Bash
-touch ~/.claude/.korean-adhd-always
+touch ~/.claude/.get-to-it-always
 ```
 
 ```powershell
 # PowerShell
-New-Item -ItemType File "$HOME\.claude\.korean-adhd-always"
+New-Item -ItemType File "$HOME\.claude\.get-to-it-always"
 ```
 
-i-have-adhd 사용 중이면 터미널에서 `claude plugin disable i-have-adhd@i-have-adhd` 실행 권장.
+If you use i-have-adhd, turn it off with `claude plugin disable i-have-adhd@i-have-adhd`. With both on, Claude follows this plugin, but similar rules get injected twice.
 
-사유: 함께 켜도 Claude는 이 플러그인 규칙을 따르지만 비슷한 규칙이 두 번 주입됨.
+## Language and tone
 
-## 어투 설정
+| Setting | Options | Default | Setting file |
+| --- | --- | --- | --- |
+| Language | English, Korean | English | `~/.claude/.get-to-it-lang` |
+| Tone | company, plain | company | `~/.claude/.get-to-it-tone` |
 
-답변 어투를 회사어투(기본)와 일반어투 중에서 선택.
+- Company tone: chat replies and work reports in short status lines ("Fix done", "Restart needed"), using everyday work words. Rules: [`references/company-tone.md`](skills/get-to-it/references/company-tone.md)
+- Plain tone: ordinary full sentences.
+- Korean: a separate rule set for natural Korean and Korean company reports. Rules: [`references/ko/`](skills/get-to-it/references/ko)
 
-- 회사어투: 회사 보고서 보고체로 축약. 단어는 회사에서 실제로 쓰는 쉬운 말 사용. 채팅 답변, 업무 보고서에 적용
-- 회사어투 보고서 양식 글: 국내 회사 실제 보고서 문체(개조식, 번역투 금지)로 작성
-- 일반어투: "~합니다" 문장
-- 규칙 파일: [`references/company-tone.md`](skills/korean-adhd/references/company-tone.md)
+There are two ways to change them.
 
-변경 방법 2가지.
-
-1. 현재 세션만 변경: "일반어투로" 또는 "회사어투로" 입력.
-2. 새 세션마다 적용: 설정 파일 `~/.claude/.korean-adhd-tone`에 `plain`(일반어투) 또는 `company`(회사어투) 기록. 파일이 없으면 회사어투. `.korean-adhd-always` 파일 함께 필요.
+1. For the current session only, say "Korean mode" or "English mode" for language, and "plain tone" or "company tone" for tone.
+2. For every new session, write `ko` to the language file or `plain` to the tone file. Without the files, English and company tone are used. The files only work together with `.get-to-it-always`.
 
    ```bash
    # macOS, Linux, Git Bash
-   echo plain > ~/.claude/.korean-adhd-tone
+   echo ko > ~/.claude/.get-to-it-lang
+   echo plain > ~/.claude/.get-to-it-tone
    ```
 
    ```powershell
    # PowerShell
-   Set-Content "$HOME\.claude\.korean-adhd-tone" plain
+   Set-Content "$HOME\.claude\.get-to-it-lang" ko
+   Set-Content "$HOME\.claude\.get-to-it-tone" plain
    ```
 
-### 달라지는 문장
+### How sentences change
 
-| 일반어투 | 회사어투 |
+| Plain tone | Company tone |
 | --- | --- |
-| DB를 확인하고 고쳤습니다. | DB 확인 후 수정 완료 |
-| 원인은 캐시입니다. | 원인: 캐시 |
-| 서버를 재시작해야 합니다. | 서버 재시작 필요 |
-| 내일 배포합니다. | 내일 배포 예정 |
-| 캐시가 원인일 수 있습니다. | 캐시 원인 가능성 있음(확인 필요) |
-| 다음: 처음 실패한 줄을 붙여 주세요. | 다음: 처음 실패한 줄 전달 요청 |
+| I checked the DB and fixed it. | DB checked, fix done |
+| The cause is the cache. | Cause: cache |
+| You need to restart the server. | Server restart needed |
+| We'll deploy tomorrow. | Deploy scheduled for tomorrow |
+| The cache might be the cause. | Possible cause: cache (needs checking) |
+| Next: please paste the first failing line. | Next: first failing line requested |
 
-### 보고 예시
+### Report example
 
-규칙 설명용으로 직접 작성한 글.
+Written by hand to illustrate the rules.
 
-일반어투:
+Plain tone:
 
-> 로그인 오류를 확인했습니다. 원인은 캐시로 보이지만 아직 확실하지 않습니다. 테스트 3건이 실패했고 내일 배포할 예정입니다.
+> I checked the login error. The cause looks like the cache, but that is not certain yet. Three tests failed, and we plan to deploy tomorrow.
 
-회사어투:
+Company tone:
 
-> 로그인 오류 확인 완료
+> Login error checked
 >
-> 원인: 캐시 가능성 있음(확인 필요)
+> Possible cause: cache (needs checking)
 >
-> 테스트 3건 실패
+> 3 tests failed
 >
-> 내일 배포 예정
+> Deploy scheduled for tomorrow
 >
-> 다음: 실패 로그 첫 줄 전달 요청
+> Next: first line of the failure log requested
 
-## 적용 예시
+## Examples
 
-아래 예시는 규칙 설명용으로 직접 작성한 글. 회사어투 적용 기준. 실제 답변은 모델과 대화 내용에 따라 달라짐.
+These examples are written by hand to illustrate the rules, in company tone. Actual replies vary with the model and conversation.
 
-### 예시 1. 오류를 고칠 때
+### Example 1. Fixing an error
 
-요청: 로그인하면 401이 나와. 어떻게 고쳐?
+Request: I get a 401 when I log in. How do I fix it?
 
-이전:
+Before:
 
-> 네, 확인해 보겠습니다. 인증 흐름에는 여러 요소가 있어서 먼저 구조를 살펴보면 미들웨어와 토큰 검증, 쿠키 처리가 관련되어 있습니다. 결론적으로 토큰 검증 부분을 수정해 볼 수 있을 것 같습니다. 참고로 의존성 버전도 낡았습니다. 도움이 되셨길 바랍니다!
+> Sure, let me take a look! The auth flow has several parts, so let's first dive into the structure: the middleware, token verification and cookie handling all play a crucial role. In conclusion, it might be worth modifying the token verification. By the way, your dependencies are also out of date. Hope this helps!
 
-이후:
+After:
 
-> `src/auth.ts:42`의 `verifyToken` 수정 필요.
+> Fix needed: `verifyToken` in `src/auth.ts:42`
 >
-> 사유: 요청의 `Authorization` 헤더를 읽지 않음.
+> Reason: request's `Authorization` header not read
 >
-> 1. 42번째 줄에서 헤더 읽도록 수정.
-> 2. `npm test -- auth.spec.ts` 실행.
+> 1. Change line 42 to read the header.
+> 2. Run `npm test -- auth.spec.ts`.
 >
-> 다음: 테스트 실패 시 처음 실패한 줄 전달 요청.
+> Next: first failing line requested if a test fails
 
-첫 줄을 할 일로 변경. 의존성 이야기는 현재 문제 종료 후 별도 확인.
+The first line is the action. The dependency topic waits until the current problem is done.
 
-### 예시 2. 작업이 길어질 때
+### Example 2. Long-running work
 
-요청: API 문서 5개를 한국어로 옮겨 줘.
+Request: Translate these 5 API documents into Korean.
 
-이전:
+Before:
 
-> 번역 작업을 진행하고 있습니다. 조금만 기다려 주시면 곧 완료될 예정입니다.
+> The translation is in progress. Please wait a moment and it will be finished soon.
 
-이후:
+After:
 
-> 3/5단계 완료: 인증 문서 번역. 남은 시간 약 5분.
+> Step 3/5 done: auth document translated. About 5 minutes left.
 >
-> 다음: 결제 문서 번역 예정.
+> Next: payment document translation scheduled
 
-진행 위치를 매번 재표기. 시간은 숫자로 표기.
+Progress is restated every time, and time is a number.
 
-### 예시 3. 되돌리기 어려운 작업
+### Example 3. Hard-to-reverse work
 
-요청: 오래된 브랜치 다 지워 줘.
+Request: Delete all the old branches.
 
-이후:
+After:
 
-> 삭제 전 확인 필요.
+> Confirmation needed before deleting
 >
-> 대상: 12개. `feature/payment`, `fix/login` 미병합.
+> Targets: 12 branches. `feature/payment` and `fix/login` not merged.
 >
-> 삭제 시 두 브랜치 커밋 찾기 어려움.
+> Deleting them makes their commits hard to find.
 >
-> 다음: 병합된 10개만 삭제·12개 전체 삭제 중 선택 요청.
+> Next: choice requested between the 10 merged branches and all 12
 
-삭제, 강제 push, 스키마 변경은 사전 확인 필수.
+Deletes, force pushes and schema changes get a confirmation first.
 
-### 예시 4. 문장 바꾸기
+### Example 4. Plain words
 
-| 이전 | 이후 |
+| Before | After |
 | --- | --- |
-| 배포에 있어서 중요한 점은 환경 변수입니다. | 배포 시 중요 항목: 환경 변수 |
-| 스크립트에 의해 생성된 파일을 통해 검증을 진행합니다. | 스크립트 생성 파일로 검증 |
-| 강한 성능을 가지고 있습니다. | 성능 좋음 |
-| 결론적으로, 캐시가 원인이라는 것입니다. | 원인: 캐시 |
+| Let's delve into the logs to ensure a seamless deployment. | Logs to check before deploy |
+| It's important to note that environment variables play a crucial role in deployment. | Deploy depends on environment variables |
+| We should leverage the existing cache layer in order to improve performance. | Existing cache reuse proposed for speed |
+| In conclusion, it is the cache that is the cause. | Cause: cache |
 
-## 켜기와 끄기
+## Turning it on and off
 
-| 하려는 일 | 방법 |
+| Goal | How |
 | --- | --- |
-| 이 세션에서만 켜기 | `/korean-adhd:korean-adhd` 입력 |
-| 이 세션에서 끄기 | "ADHD 모드 꺼", "normal mode", "stop adhd mode" 중 하나 입력 |
-| 새 세션마다 켜기 | `~/.claude/.korean-adhd-always` 파일 생성 |
-| 새 세션마다 켜기 해제 | 위 파일 삭제 |
-| 이 세션에서 어투 변경 | "일반어투로", "회사어투로" 입력 |
-| 새 세션마다 어투 지정 | `~/.claude/.korean-adhd-tone`에 `plain` 또는 `company` 기록 |
-| 기본 어투(회사어투)로 복귀 | 위 파일 삭제 |
+| Turn on for this session | Type `/get-to-it:get-to-it` |
+| Turn off for this session | Say "normal mode" or "stop get-to-it" |
+| Turn on for every new session | Create `~/.claude/.get-to-it-always` |
+| Stop turning on for new sessions | Delete that file |
+| Change language for this session | Say "Korean mode" or "English mode" |
+| Set language for every new session | Write `ko` to `~/.claude/.get-to-it-lang` |
+| Change tone for this session | Say "plain tone" or "company tone" |
+| Set tone for every new session | Write `plain` or `company` to `~/.claude/.get-to-it-tone` |
+| Back to the defaults (English, company tone) | Delete the setting files |
 
-어투 설정 파일은 `.korean-adhd-always` 파일 함께 필요.
+The setting files only work together with the `.get-to-it-always` file. With the always-on file present, the rules are injected again after compaction or `/clear`, even if you turned them off during the session.
 
-항상 켜기 파일이 있으면 세션 중 해제해도 대화 압축이나 `/clear` 후 규칙 재주입됨.
+## License
 
-## 라이선스
-
-MIT. 세 원작 저작권 표시는 [`LICENSE`](LICENSE)에 함께 수록.
+MIT. See [`LICENSE`](LICENSE).
