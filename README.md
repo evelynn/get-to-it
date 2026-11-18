@@ -15,7 +15,7 @@ It is for anyone who wants Claude to get to the point. English is the default. K
 | `get-to-it` | Chat replies and work reports in short status lines | `/get-to-it:get-to-it`, the always-on file, or automatically when you ask for a report |
 | `long-form` | Documents, READMEs, email, notices, UI copy, editing and translation | Automatically when you ask for that kind of text, or `/get-to-it:long-form` |
 
-Both skills remove the same defects (changed meaning, hidden point, translated or machine-sounding phrasing) using one shared list: [`shared/`](shared)
+Each skill has one rule file per language, so a task reads only the file it needs: [`skills/`](skills)
 
 ## Install
 

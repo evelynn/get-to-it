@@ -13,16 +13,18 @@ const enSkillPath = path.join(skillDir, "SKILL.md"); // 영어 규칙(기본)
 const skillPath = path.join(skillDir, "references", "ko", "rules.md"); // 한국어 규칙
 const longDir = path.join(root, "skills", "long-form"); // 긴 글·윤문·번역 스킬
 const longSkillPath = path.join(longDir, "SKILL.md");
-const longKoPath = path.join(longDir, "references", "ko.md");
-const defectsPath = path.join(root, "shared", "defects.md"); // 두 스킬 공통 결함 진단표
-const defectsKoPath = path.join(root, "shared", "defects.ko.md");
-const koDocs = [skillPath, longKoPath, defectsKoPath];
-const ruleDocs = [enSkillPath, longSkillPath, defectsPath, ...koDocs];
+const longEnPath = path.join(longDir, "en.md"); // 긴 글 규칙은 언어별 파일 하나(절차 + 결함 진단표)
+const longKoPath = path.join(longDir, "ko.md");
+const koDocs = [skillPath, longKoPath];
+const ruleDocs = [enSkillPath, longSkillPath, longEnPath, ...koDocs];
 const enReadmePath = path.join(root, "README.md"); // 메인 = 영어
 const readmePath = path.join(root, "README.ko.md"); // 한국어
 const readmes = [enReadmePath, readmePath];
 // Claude Code 훅 출력 주입 한도 10000자. 설치 경로가 저장소 경로보다 길어지는 만큼 300자를 남긴다.
 const MAX_INJECTED_CHARS = 10000 - 300;
+// 세션마다 들어가는 주입문과 긴 글 한 건에 읽는 파일의 분량 상한(글쓰기 스킬이 무거워지지 않게 한다)
+const LIGHT_INJECTED_CHARS = { en: 7500, ko: 5800 };
+const LIGHT_LONG_CHARS = { en: 9000, ko: 8500 };
 const ALWAYS = ".get-to-it-always";
 const LANG = ".get-to-it-lang";
 
@@ -91,12 +93,13 @@ const tests = {
     for (const lang of [null, "ko"]) {
       const { stdout } = inject({ lang });
       assert.ok(stdout.length < MAX_INJECTED_CHARS, `${lang}: ${stdout.length}자`);
+      assert.ok(stdout.length < LIGHT_INJECTED_CHARS[lang ?? "en"], `${lang}: ${stdout.length}자`);
     }
   },
   "주입문의 참조 경로는 실제 파일을 가리킨다"() {
     for (const [lang, want] of [
-      [null, ["references/ko/rules.md", "long-form/SKILL.md", "shared/defects.md"]],
-      ["ko", ["get-to-it/SKILL.md", "long-form/SKILL.md", "long-form/references/ko.md", "shared/defects.ko.md"]],
+      [null, ["references/ko/rules.md", "long-form/en.md"]],
+      ["ko", ["get-to-it/SKILL.md", "long-form/ko.md", "long-form/en.md"]],
     ]) {
       const { stdout } = inject({ lang });
       assert.doesNotMatch(stdout, /\$\{CLAUDE_SKILL_DIR\}/);
@@ -210,8 +213,8 @@ const tests = {
     const frontmatter = read(enSkillPath).split("---")[1];
     assert.match(frontmatter, new RegExp(`^name: ${plugin.name}$`, "m"));
     assert.match(read(longSkillPath).split("---")[1], /^name: long-form$/m);
-    // 한국어 규칙과 공통 진단표는 스킬로 따로 잡히지 않도록 머리말이 없다
-    for (const f of [skillPath, longKoPath, defectsPath, defectsKoPath]) assert.ok(!read(f).startsWith("---"), f);
+    // 언어별 규칙 파일은 스킬로 따로 잡히지 않도록 머리말이 없다
+    for (const f of [skillPath, longEnPath, longKoPath]) assert.ok(!read(f).startsWith("---"), f);
   },
   "SKILL.md 설명이 플러그인 스킬 호출명을 쓴다"() {
     const frontmatter = read(enSkillPath).split("---")[1];
@@ -239,30 +242,42 @@ const tests = {
     assert.match(license, /Copyright \(c\) 2026 K-Humanizer contributors/);
     assert.match(license, /github\.com\/evergreentree97\/K-Humanizer/);
   },
-  "긴 글 스킬이 고칠 이유·자연스러운 글 유지·결과 반환·질문 범위를 명시한다"() {
-    const rule = read(longSkillPath);
-    for (const head of ["## 1. Identify the task", "## 2. Read the situation", "## 3. Write", "## 4. Protect facts and commitments", "## 5. Stop when the text works", "## 6. By genre", "## 7. Return the result", "## Final check"]) {
-      assert.ok(rule.includes(head), head);
+  "긴 글 규칙이 고칠 이유·자연스러운 글 유지·결과 반환·질문 범위를 언어별로 명시한다"() {
+    const router = read(longSkillPath);
+    // SKILL.md 는 언어만 가르고 업무 보고서는 get-to-it 회사어투로 넘긴다
+    assert.match(router, /The result is Korean: `\$\{CLAUDE_SKILL_DIR\}\/ko\.md`/);
+    assert.match(router, /Any other language: `\$\{CLAUDE_SKILL_DIR\}\/en\.md`/);
+    assert.match(router, /Work reports and status updates follow get-to-it's company tone/);
+    const en = read(longEnPath);
+    for (const head of ["## 1. Identify the task", "## 2. Write", "## 3. Keep the meaning", "## 4. Edit only with a reason", "## 5. Defects", "## 6. Return the result", "## Final check"]) {
+      assert.ok(en.includes(head), head);
     }
-    assert.match(rule, /An edit to supplied text needs a problem you can name/);
-    assert.match(rule, /Text that already reads naturally goes back unchanged/);
-    assert.match(rule, /changed more than 30%/);
-    assert.match(rule, /Lead with the text, ready to paste/);
-    assert.match(rule, /don't silently pick one/);
-    assert.match(rule, /ask one question per missing fact/);
-    assert.match(rule, /notes and questions in the language of the request/);
-    // 업무 보고서는 get-to-it 회사어투로 넘긴다
-    assert.match(rule, /Work reports and status updates follow get-to-it's company tone/);
-    const checks = rule.split("## Final check")[1].match(/^\d+\./gm).map((s) => parseInt(s, 10));
-    assert.deepEqual(checks, Array.from({ length: checks.length }, (_, i) => i + 1));
+    assert.match(en, /An edit to supplied text needs a problem you can name/);
+    assert.match(en, /Text that already reads naturally goes back unchanged/);
+    assert.match(en, /changed more than 30%/);
+    assert.match(en, /Lead with the text, ready to paste/);
+    assert.match(en, /don't silently pick one/);
+    assert.match(en, /ask one question per missing fact/);
+    assert.match(en, /notes and questions in the language of the request/);
     const ko = read(longKoPath);
-    for (const head of ["## 1. 어체", "## 2. 영어 → 한국어", "## 3. 고침 예", "## 4. 추가 점검"]) assert.ok(ko.includes(head), head);
+    for (const head of ["## 1. 작업 구분", "## 2. 어체", "## 3. 작성", "## 4. 뜻 유지", "## 5. 고칠 이유가 있을 때만 수정", "## 6. 결함", "## 7. 영어 → 한국어", "## 8. 고침 예", "## 9. 결과 반환", "## 최종 점검"]) {
+      assert.ok(ko.includes(head), head);
+    }
+    assert.match(ko, /이름 붙일 수 있는 문제 필요/);
+    assert.match(ko, /이미 자연스러운 글은 그대로 반환/);
+    assert.match(ko, /30% 넘게 바꿨으면 축소/);
+    assert.match(ko, /결과물을 맨 앞에, 바로 붙여넣을 수 있게 반환/);
+    assert.match(ko, /조용히 한쪽 선택 금지/);
+    assert.match(ko, /빠진 사실마다 질문 하나/);
     assert.match(ko, /이미 일관된 글을 기본값 때문에 변경 금지/);
     assert.match(ko, /\| 새로 쓰는 글\(문서, README, 메일, 공지, 안내문\) \| 회사어투 보고체/);
     assert.match(ko, /새로 쓰는 글의 어체 변경은 사용자가 따로 요청할 때만/);
-    assert.match(ko, /어체는 이 문서 1절이 `SKILL\.md`보다 우선/);
     // 고치지 않고 돌려주는 예시를 둔다
     assert.ok((ko.match(/\| 그대로 반환 \|/g) ?? []).length >= 3);
+    for (const t of [en, ko]) {
+      const checks = t.split(/^## (?:Final check|최종 점검)$/m)[1].match(/^\d+\./gm).map((s) => parseInt(s, 10));
+      assert.deepEqual(checks, Array.from({ length: checks.length }, (_, i) => i + 1));
+    }
   },
   "일반어투 없이 회사어투 한 가지로 쓰고 사실·연결 보존은 2장에 둔다"() {
     const rule = read(skillPath);
@@ -288,31 +303,32 @@ const tests = {
       assert.ok(i < ch2, s);
     }
   },
-  "공통 결함 진단표는 조건부(고침·둘 때)이고 두 언어가 같은 결함을 다룬다"() {
-    const ko = read(defectsKoPath);
-    for (const head of ["## 적용 원칙", "## 1. 뜻이 달라짐", "## 2. 무슨 말인지 안 보임", "## 3. 번역한 글처럼 읽힘", "## 4. AI가 쓴 글처럼 읽힘", "## 5. 외래어·내부 용어", "## 6. 문단 흐름·문장부호"]) {
-      assert.ok(ko.includes(head), head);
-    }
+  "긴 글 결함 진단표는 조건부(고침·둘 때)이고 뜻 유지 기준을 두 언어 모두 둔다"() {
+    const ko = read(longKoPath);
     assert.match(ko, /금지어 없음/);
-    assert.match(ko, /정확성이 다듬기보다 우선/);
+    assert.match(ko, /뜻 보존이 다듬기보다 우선/);
     assert.match(ko, /가능성을 약속으로, 확정을 가능성으로 변경 금지/);
     assert.match(ko, /점검만 한 일을 결함 발견처럼 기재 금지/);
-    assert.match(ko, /줄이면서 원인·대비·순서·지시를 잇는 말 삭제 금지/);
+    assert.match(ko, /줄이면서 원인·대비·순서를 잇는 말 삭제 금지/);
     // 진단표 행은 패턴·고침·둘 때 세 칸이다
-    const koRows = ko.split(/\r?\n/).filter((l) => l.startsWith("|"));
-    assert.ok(koRows.length >= 25);
+    const koRows = ko.split("## 6. 결함")[1].split(/^## /m)[0].split(/\r?\n/).filter((l) => l.startsWith("|"));
+    assert.ok(koRows.length >= 10);
     for (const row of koRows) assert.equal(row.split("|").length, 5, row);
-    assert.equal((ko.match(/\| 둘 때 \|/g) ?? []).length, 2);
+    assert.equal((ko.match(/\| 둘 때 \|/g) ?? []).length, 1);
     // 탐지용 등급·임계값·원본 번호는 두지 않는다
     assert.doesNotMatch(ko, /\[S[123]\]|\*\*[A-O]-\d+\*\*|\d회\+|실측/);
-    const en = read(defectsPath);
-    for (const head of ["## How to apply", "## 1. Meaning changed", "## 2. Point hidden", "## 3. Machine-sounding", "## 4. Flow"]) assert.ok(en.includes(head), head);
+    const en = read(longEnPath);
     assert.match(en, /No word is banned/);
     assert.match(en, /Accuracy comes before polish/);
     assert.match(en, /a possibility must not become a promise, and a commitment must not become a hedge/);
+    assert.match(en, /A check is not a finding/);
+    assert.match(en, /Don't delete a link while shortening/);
+    const enRows = en.split("## 5. Defects")[1].split(/^## /m)[0].split(/\r?\n/).filter((l) => l.startsWith("|"));
+    assert.ok(enRows.length >= 7);
+    for (const row of enRows) assert.equal(row.split("|").length, 5, row);
     assert.equal((en.match(/\| Keep when \|/g) ?? []).length, 1);
   },
-  "두 스킬이 목적별로 나뉘고 자동 호출되며 공통 진단표를 함께 쓴다"() {
+  "두 스킬이 목적별로 나뉘고 자동 호출되며 긴 글은 언어별 파일 하나만 읽는다"() {
     const [shortFm, longFm] = [enSkillPath, longSkillPath].map((f) => read(f).split("---")[1]);
     for (const fm of [shortFm, longFm]) assert.doesNotMatch(fm, /disable-model-invocation/);
     assert.match(shortFm, /work report, status update or other short business text/);
@@ -326,10 +342,17 @@ const tests = {
     assert.match(read(skillPath), /보고서나 짧은 업무 글 한 건 때문에 불러온 경우 그 글에만 적용/);
     // 한국어 규칙(rules.md)의 경로는 get-to-it 스킬 폴더 기준이다
     const refs = [
-      [enSkillPath, skillDir, [skillPath, longSkillPath, defectsPath]],
-      [skillPath, skillDir, [enSkillPath, longSkillPath, longKoPath, defectsKoPath]],
-      [longSkillPath, longDir, [enSkillPath, longKoPath, defectsPath, defectsKoPath]],
+      [enSkillPath, skillDir, [skillPath, longEnPath]],
+      [skillPath, skillDir, [enSkillPath, longKoPath, longEnPath]],
+      [longSkillPath, longDir, [enSkillPath, longEnPath, longKoPath]],
     ];
+    // 긴 글 한 건에 읽는 파일은 언어별 하나이고 다른 파일을 더 읽게 하지 않는다
+    for (const f of [longEnPath, longKoPath]) assert.doesNotMatch(read(f), /CLAUDE_SKILL_DIR|shared\/|references\//, f);
+    assert.ok(!fs.existsSync(path.join(root, "shared")));
+    assert.ok(!fs.existsSync(path.join(longDir, "references")));
+    assert.ok(read(longSkillPath).length < 1500, "long-form SKILL.md 는 언어만 가르는 안내");
+    assert.ok(read(longEnPath).length < LIGHT_LONG_CHARS.en, `en: ${read(longEnPath).length}자`);
+    assert.ok(read(longKoPath).length < LIGHT_LONG_CHARS.ko, `ko: ${read(longKoPath).length}자`);
     for (const [file, dir, want] of refs) {
       const got = [...new Set(skillRefs(file, dir))];
       for (const r of got) assert.ok(fs.existsSync(r), `${file}: ${r}`);
@@ -349,7 +372,6 @@ const tests = {
     // rules.md 의 표는 고침 전후 문장 예시라 제외한다(3장 표는 위 테스트가 본다)
     assert.deepEqual(plainEndings(skillPath, { tables: false }), []);
     assert.deepEqual(plainEndings(longKoPath, { tables: true }), []);
-    assert.deepEqual(plainEndings(defectsKoPath, { tables: true }), []);
   },
   "회사어투 보고서 양식 글은 국내 회사 보고서 문체를 따르고 고친 쪽은 명사형으로 끝난다"() {
     const company = read(skillPath).split("## 3장. 회사어투")[1].split(/^## /m)[0];
@@ -360,7 +382,7 @@ const tests = {
     assert.match(n, /원문이나 사용자가 준 값만 기재/);
     assert.match(n, /이미 회사 보고서 문체인 글은 그대로 반환/);
     const rows = n.split(/\r?\n/).filter((l) => /^\| /.test(l)).slice(2);
-    assert.ok(rows.length >= 8);
+    assert.ok(rows.length >= 4);
     for (const row of rows) {
       const fixed = row.split("|")[2].trim();
       assert.doesNotMatch(fixed, /(입니다|습니다|합니다|한다|해요|에 대한|를 통해|에 의해|에 있어서|들)$/, row);
