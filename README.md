@@ -17,6 +17,36 @@
 | Progress | "finished soon" | Step 3/5 done |
 | Time left | Not given | About 5 minutes |
 
+**Token usage** (measured: 10 questions × Korean and English × off and on = 40 runs, average per question)
+
+```mermaid
+xychart-beta
+    title "Output tokens (lower is better)"
+    x-axis ["Korean off", "Korean on", "English off", "English on"]
+    y-axis "Tokens" 0 --> 1400
+    bar [1194, 879, 916, 616]
+```
+
+```mermaid
+xychart-beta
+    title "Input tokens (including the rules)"
+    x-axis ["Korean off", "Korean on", "English off", "English on"]
+    y-axis "Tokens" 0 --> 14000
+    bar [8574, 12587, 8540, 10634]
+```
+
+| Measure | Korean off | Korean on | English off | English on |
+| --- | ---: | ---: | ---: | ---: |
+| Output tokens (answer + thinking) | 1,194 | 879 (-26%) | 916 | 616 (-33%) |
+| Answer characters | 1,570 | 1,170 (-25%) | 2,252 | 1,451 (-36%) |
+| Input tokens | 8,574 | 12,587 (+47%) | 8,540 | 10,634 (+25%) |
+
+- Output tokens drop 26% in Korean and 33% in English.
+- Input tokens rise because the rules are sent with every request: about 4,800 tokens per request in Korean, 2,500 in English.
+- Conditions: 2026-11-19, `claude-opus-5-5`, an empty folder, no user settings, CLAUDE.md or MCP, read-only tools only, one run per question.
+- The "on" runs add the text the hook injects with `--append-system-prompt-file`.
+- Reproduce: `node bench/token-usage.mjs`. Raw data: [`bench/results.json`](bench/results.json)
+
 A Claude Code plugin that answers in company tone: short business-report lines you can act on. The first line is the next step, steps are numbered, and AI filler gives way to the plain words people use at work.
 
 It is for anyone who wants Claude to get to the point. English is the default. Korean has its own full rule set, including natural Korean without translated-sounding phrasing and Korean business-report style.
