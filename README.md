@@ -45,9 +45,21 @@ xychart-beta
 
 - Output tokens drop 26% in Korean and 33% in English.
 - Input tokens rise because the rules are sent with every request: about 4,800 tokens per request in Korean, 2,500 in English.
-- Conditions: 2026-11-19, `claude-opus-5-5`, an empty folder, no user settings, CLAUDE.md or MCP, read-only tools only, one run per question.
-- The "on" runs add the text the hook injects with `--append-system-prompt-file`.
+How it was measured
+
+- Date and model: 2026-11-19, `claude-opus-5-5`.
+- Questions: 10 developer questions (a 401 on JWT login, changing the last commit message, an npm ERESOLVE error and so on), with the same content in Korean and English.
+- Environment: an empty temporary folder. No user settings, CLAUDE.md or MCP. Only read-only tools (Read, Glob, Grep) allowed.
+- "On" runs: the text the hook injects is added with `--append-system-prompt-file`. In real use, the session-start hook injects the same text.
+- Totals: one off run and one on run per question, averaged over the 10 questions. Output tokens are answer plus thinking tokens. Input tokens are the full input, including cache reads and writes.
 - Reproduce: `node bench/token-usage.mjs`. Raw data: [`bench/results.json`](bench/results.json)
+
+Limits
+
+- One run per question. Answer length varies between runs of the same question, and that variance is not captured. Read the results as an average trend only.
+- The first measurement was discarded. With all tools turned off, the model kept calling `ls` and 6 runs used about 128,000 tokens each. Those outliers would have inflated the saving past 97%, so the runs were repeated with read-only tools allowed.
+- Only single short questions were measured. Long conversations and file-heavy work were not.
+- Cost was not measured. Whether more input tokens and fewer output tokens cost more or less depends on the pricing plan and on caching.
 
 A Claude Code plugin that answers in company tone: short business-report lines you can act on. The first line is the next step, steps are numbered, and AI filler gives way to the plain words people use at work.
 
